@@ -8,6 +8,7 @@ import {
   orderBy,
   addDoc,
   getDocs,
+  serverTimestamp,
 } from "firebase/firestore";
 import { db } from "../../helpers/firebase";
 import { FaMicrophone } from "react-icons/fa";
@@ -88,7 +89,7 @@ export default function ChatLogs({
     const newMessage = {
       message,
       senderId,
-      sentAt: Date.now(),
+      sentAt: serverTimestamp(),
     };
 
     try {

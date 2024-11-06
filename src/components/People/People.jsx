@@ -10,6 +10,7 @@ import {
   where,
   updateDoc,
   deleteDoc,
+  serverTimestamp,
   addDoc,
   orderBy,
   getDocs,
@@ -125,7 +126,7 @@ export default function People({
 
       await addDoc(createNewChatCollection, {
         message: "Chat started",
-        sentAt: Date.now(),
+        sentAt: serverTimestamp(),
         senderId: foundUser.userId,
       });
 
