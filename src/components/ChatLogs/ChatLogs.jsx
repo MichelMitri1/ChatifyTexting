@@ -71,8 +71,9 @@ export default function ChatLogs({
         }));
         setFriendRequests(updatedRequests);
       });
-      setAddFriendInput("");
 
+      setAddFriendInput("");
+      setOpen(false);
       toast.success("Friend Request Sent!");
       return () => unsubscribe();
     } catch (error) {

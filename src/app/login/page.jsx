@@ -30,8 +30,6 @@ export default function LoginPage() {
         toast.error("Login failed!");
       }
     } catch (error) {
-      console.log(error);
-
       toast.error("Cannot login user!");
     }
   };

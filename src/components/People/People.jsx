@@ -9,6 +9,7 @@ import {
   query,
   where,
   updateDoc,
+  deleteDoc,
   addDoc,
   orderBy,
   getDocs,
@@ -163,6 +164,8 @@ export default function People({
 
       toast.success("Friend request declined successfully");
     } catch (error) {
+      console.log(error);
+
       toast.error("Error declining friend request:", error.message);
     }
   };
@@ -180,8 +183,6 @@ export default function People({
     const unsubscribeRequests = onSnapshot(requestCollection, (snapshot) => {
       const updatedRequests = snapshot.docs.map((doc) => doc.data());
       setFriendRequests(updatedRequests);
-
-      console.log(currentUser.uid);
     });
 
     return () => unsubscribeRequests();
