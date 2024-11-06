@@ -1,0 +1,90 @@
+.loginpageContainer {
+  background-color: #f5f5f5;
+  width: 100%;
+  color: #333;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: none;
+  padding: 20px;
+}
+
+.loginpageWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 80%;
+  max-width: 500px;
+  padding: 40px;
+  position: relative;
+}
+
+.appName {
+  font-size: 32px;
+  font-weight: 600;
+  color: #6366f1;
+  margin-bottom: 12px;
+}
+
+.loginHeader {
+  font-size: 18px;
+  font-weight: 500;
+  margin-bottom: 24px;
+}
+
+.loginInputsWrapper {
+  width: 100%;
+  max-width: 400px;
+  margin-bottom: 16px;
+}
+
+.loginInputHeader {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.loginInput {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.red {
+  color: red;
+}
+
+.loginButton {
+  background-color: #6366f1;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 12px 16px;
+  font-size: 16px;
+  cursor: pointer;
+  width: 100%;
+  max-width: 400px;
+  margin-top: 16px;
+  transition: background-color 0.3s ease;
+}
+
+.loginButton:hover {
+  background-color: #4f46e5;
+}
+
+.registerLink {
+  font-size: 14px;
+  color: #6366f1;
+  text-decoration: none;
+  margin-top: 16px;
+}
+
+.registerLink:hover {
+  text-decoration: underline;
+}

@@ -1,0 +1,13 @@
+.mainContainer {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+}
+
+.addFriendInput {
+  margin: 10px 0px;
+  padding: 8px;
+  font-size: 12px;
+  width: 300px;
+  border-radius: 5px;
+}
