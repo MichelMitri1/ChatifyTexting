@@ -219,7 +219,7 @@ export default function People({
           friendRequests
             .filter(
               (request) =>
-                !request.friends && request.idOfCurrentUser !== currentUser.uid
+                !request.friends && request.idOfCurrentUser === currentUser.uid
             )
             .map((request) => (
               <div className={styles.friendRequestWrapper}>
