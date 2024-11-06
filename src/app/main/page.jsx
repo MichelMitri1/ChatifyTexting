@@ -17,7 +17,7 @@ export default function MainPage() {
 
   const getAllFriendRequests = async (userId) => {
     if (!userId) {
-      console.error("User ID is undefined or invalid.");
+      toast.error("User ID is undefined or invalid.");
       return;
     }
     try {

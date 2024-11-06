@@ -19,6 +19,7 @@ import Typography from "@mui/material/Typography";
 import Modal from "@mui/material/Modal";
 import toast, { Toaster } from "react-hot-toast";
 import { formatTime } from "../../helpers/utils";
+import { parseToUnixTimestamp } from "@/helpers/utils";
 
 export default function ChatLogs({
   users,
@@ -78,7 +79,7 @@ export default function ChatLogs({
       toast.success("Friend Request Sent!");
       return () => unsubscribe();
     } catch (error) {
-      console.error("Error adding friend:", error);
+      toast.error("Error adding friend:", error);
       throw error;
     }
   };
@@ -205,7 +206,9 @@ export default function ChatLogs({
                   : styles.dateOfMessageWrapperReceived
               }
             >
-              <p className={styles.dateOfMessage}>{formatTime(chat.sentAt)}</p>
+              <p className={styles.dateOfMessage}>
+                {formatTime(parseToUnixTimestamp(chat.sentAt))}
+              </p>
             </div>
           </div>
         ))}

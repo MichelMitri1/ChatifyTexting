@@ -1,3 +1,4 @@
+import { Timestamp } from "firebase/firestore";
 export const randomString = (length) => {
   const characters =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -22,4 +23,16 @@ export const formatTime = (timestamp) => {
   const period = hours >= 12 ? "PM" : "AM";
 
   return `${formattedHours}:${formattedMinutes} ${period}`;
+};
+
+export const parseToUnixTimestamp = (timestamp) => {
+  if (timestamp instanceof Timestamp) {
+    return timestamp.toMillis();
+  }
+
+  if (!isNaN(timestamp)) {
+    return timestamp;
+  }
+
+  return null;
 };

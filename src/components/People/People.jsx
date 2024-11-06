@@ -20,6 +20,7 @@ import { FaCheck } from "react-icons/fa";
 import { IoClose } from "react-icons/io5";
 import styles from "./people.module.css";
 import toast, { Toaster } from "react-hot-toast";
+import { parseToUnixTimestamp } from "@/helpers/utils";
 
 export default function People({
   currentUser,
@@ -165,7 +166,7 @@ export default function People({
 
       toast.success("Friend request declined successfully");
     } catch (error) {
-      console.log(error);
+      toast.log(error);
 
       toast.error("Error declining friend request:", error.message);
     }
