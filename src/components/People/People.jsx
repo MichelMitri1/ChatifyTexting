@@ -180,10 +180,12 @@ export default function People({
     const unsubscribeRequests = onSnapshot(requestCollection, (snapshot) => {
       const updatedRequests = snapshot.docs.map((doc) => doc.data());
       setFriendRequests(updatedRequests);
+      
+      console.log(currentUser.uid);
     });
 
     return () => unsubscribeRequests();
-  }, [currentUser?.uid, setFriendRequests]);
+  }, [currentUser.uid, setFriendRequests]);
 
   return (
     <div className={styles.peopleContainer}>
@@ -215,10 +217,7 @@ export default function People({
       <div className={styles.peopleWrapper}>
         {friendRequests.length > 0 ? (
           friendRequests
-            .filter(
-              (request) =>
-                !request.friends && request.idOfUserSent === currentUser.uid
-            )
+            .filter((request) => !request.friends)
             .map((request) => (
               <div className={styles.friendRequestWrapper}>
                 <h3 key={request.id} className={styles.nameOfUserSent}>
