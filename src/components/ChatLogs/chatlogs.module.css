@@ -180,3 +180,90 @@
   background: #c4c4c4;
   border-radius: 3px;
 }
+
+.audioPlayerContainerSent {
+  background-color: #8463ff;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.audioPlayer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #f0f0f0;
+  font-size: 0.9rem;
+}
+
+.audioControls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.playButtonSent,
+.timeDisplaySent {
+  color: #f0f0f0;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.playButtonSent {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  font-size: 16px;
+}
+
+.playButtonSent:hover,
+.timeDisplaySent:hover {
+  color: #b28cff;
+}
+
+.progressBar {
+  flex-grow: 1;
+  height: 4px;
+  background-color: #f0f0f0;
+  border-radius: 2px;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.progressSent {
+  height: 100%;
+  background-color: #f0f0f0;
+  width: 200px;
+  transition: width 0.2s ease;
+}
+
+.progressReceived {
+  height: 100%;
+  background-color: #8463ff;
+  width: 200px;
+  transition: width 0.2s ease;
+}
+
+.playButtonReceived,
+.timeDisplayReceived {
+  color: #8463ff;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.playButtonReceived {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  font-size: 16px;
+}
+
+.playButtonReceived:hover,
+.timeDisplayReceived:hover {
+  color: #b28cff;
+}

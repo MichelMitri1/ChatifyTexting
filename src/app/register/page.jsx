@@ -26,6 +26,7 @@ export default function RegisterPage() {
   });
 
   async function registerUser(e) {
+    e.preventDefault();
     if (
       !registerInput.nameOfUser ||
       !registerInput.username ||
@@ -35,7 +36,6 @@ export default function RegisterPage() {
       toast.error("Enter all Fields Please");
       return;
     }
-    e.preventDefault();
     try {
       setLoading(true);
       await createUserWithEmailAndPassword(

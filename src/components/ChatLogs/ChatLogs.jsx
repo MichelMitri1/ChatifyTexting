@@ -10,7 +10,7 @@ import {
   getDocs,
   serverTimestamp,
 } from "firebase/firestore";
-import { db } from "../../helpers/firebase";
+import { db, storage } from "../../helpers/firebase";
 import { FaMicrophone } from "react-icons/fa";
 import { MdAddPhotoAlternate } from "react-icons/md";
 import { IoCameraOutline, IoSend } from "react-icons/io5";
@@ -20,6 +20,8 @@ import Modal from "@mui/material/Modal";
 import toast, { Toaster } from "react-hot-toast";
 import { formatTime } from "../../helpers/utils";
 import { parseToUnixTimestamp } from "@/helpers/utils";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { FaPlay } from "react-icons/fa";
 
 export default function ChatLogs({
   users,
@@ -29,14 +31,91 @@ export default function ChatLogs({
   setChats,
   clickedUser,
 }) {
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [addFriendInput, setAddFriendInput] = useState("");
+  const [currentTime, setCurrentTime] = useState({});
+  const [isRecording, setIsRecording] = useState(false);
   const messageEndRef = useRef(null);
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
+
+  const formatVoiceTime = (seconds) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+    return `${minutes}:${remainingSeconds < 10 ? "0" : ""}${remainingSeconds}`;
+  };
+
+  const startRecording = async () => {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorderRef.current = new MediaRecorder(stream);
+    audioChunksRef.current = [];
+
+    mediaRecorderRef.current.ondataavailable = (event) => {
+      audioChunksRef.current.push(event.data);
+    };
+
+    mediaRecorderRef.current.onstop = () => {
+      const audioBlob = new Blob(audioChunksRef.current, {
+        type: "audio/webm",
+      });
+      audioChunksRef.current = [];
+      uploadAudio(audioBlob);
+    };
+
+    mediaRecorderRef.current.start();
+    setIsRecording(true);
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+  };
+
+  const uploadAudio = async (audioBlob) => {
+    const audioRef = ref(storage, `audioMessages/${Date.now()}.mp3`);
+    try {
+      await uploadBytes(audioRef, audioBlob);
+      const audioURL = await getDownloadURL(audioRef);
+      sendAudioMessage(audioURL);
+    } catch (error) {
+      toast.error("Failed to upload audio message");
+    }
+  };
+
+  const sendAudioMessage = async (audioURL) => {
+    const senderId = currentUser.uid;
+    const sentToId = clickedUser.idOfUserSent;
+    const newMessage = {
+      audioURL,
+      senderId,
+      sentAt: serverTimestamp(),
+      type: "audio",
+    };
+
+    try {
+      let chatId = `${senderId}${sentToId}`;
+      let chatCollection = collection(db, "chats", chatId, "messages");
+
+      let collectionSnapshot = await getDocs(chatCollection);
+      if (collectionSnapshot.empty) {
+        chatId = `${sentToId}${senderId}`;
+        chatCollection = collection(db, "chats", chatId, "messages");
+        collectionSnapshot = await getDocs(chatCollection);
+        if (collectionSnapshot.empty) return;
+      }
+
+      await addDoc(chatCollection, newMessage);
+    } catch (error) {
+      toast.error("Failed to send audio message");
+    }
+  };
 
   const addFriend = async () => {
     setLoading(true);
@@ -124,6 +203,30 @@ export default function ChatLogs({
     }
   };
 
+  const playAudio = (audioURL, chatId) => {
+    const audio = new Audio(audioURL);
+    setCurrentTime((prevTimes) => ({
+      ...prevTimes,
+      [chatId]: 0,
+    }));
+
+    audio.ontimeupdate = () => {
+      setCurrentTime((prevTimes) => ({
+        ...prevTimes,
+        [chatId]: Math.floor(audio.currentTime),
+      }));
+    };
+
+    audio
+      .play()
+      .then(() => {
+        console.log("Audio playing");
+      })
+      .catch((error) => {
+        console.error("Error playing audio:", error);
+      });
+  };
+
   useEffect(() => {
     const fetchMessages = async () => {
       let chatId = `${currentUser.uid}${clickedUser.idOfUserSent}`;
@@ -160,6 +263,11 @@ export default function ChatLogs({
   useEffect(() => {
     if (messageEndRef.current)
       messageEndRef.current.scrollIntoView({ behavior: "smooth" });
+    const initialTimeState = {};
+    chats.forEach((chat) => {
+      initialTimeState[chat.id] = 0;
+    });
+    setCurrentTime(initialTimeState);
   }, [chats]);
 
   return (
@@ -201,15 +309,58 @@ export default function ChatLogs({
                 : styles.messageWrapperReceived
             }
           >
-            <p
-              className={
-                chat.senderId === currentUser.uid
-                  ? styles.messageSent
-                  : styles.messageReceived
-              }
-            >
-              {chat.message}
-            </p>
+            {chat.type === "audio" ? (
+              <div
+                className={
+                  chat.senderId === currentUser.uid
+                    ? styles.audioPlayerContainerSent
+                    : styles.audioPlayerContainerReceived
+                }
+              >
+                <div className={styles.audioPlayer}>
+                  <div className={styles.audioControls}>
+                    <button
+                      className={
+                        chat.senderId === currentUser.uid
+                          ? styles.playButtonSent
+                          : styles.playButtonReceived
+                      }
+                      onClick={() => playAudio(chat.audioURL, chat.id)}
+                    >
+                      <FaPlay />
+                    </button>
+                    <span
+                      className={
+                        chat.senderId === currentUser.uid
+                          ? styles.timeDisplaySent
+                          : styles.timeDisplayReceived
+                      }
+                    >
+                      {formatVoiceTime(currentTime[chat.id])}
+                    </span>
+                  </div>
+                  <div className={styles.progressBar}>
+                    <div
+                      className={
+                        chat.senderId === currentUser.uid
+                          ? styles.progressSent
+                          : styles.progressReceived
+                      }
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <p
+                className={
+                  chat.senderId === currentUser.uid
+                    ? styles.messageSent
+                    : styles.messageReceived
+                }
+              >
+                {chat.message}
+              </p>
+            )}
             <div
               className={
                 chat.senderId === currentUser.uid
@@ -218,7 +369,7 @@ export default function ChatLogs({
               }
             >
               <p className={styles.dateOfMessage}>
-                {formatTime(parseToUnixTimestamp(chat.sentAt))}
+                {formatVoiceTime(currentTime[chat.id] || 0)}
               </p>
             </div>
           </div>
@@ -238,7 +389,23 @@ export default function ChatLogs({
         />
         <div className={styles.iconsWrapper}>
           <IoCameraOutline className={styles.icon} />
-          <FaMicrophone className={styles.icon} />
+          {isRecording ? (
+            <FaMicrophone
+              className={`${styles.icon} ${styles.recording}`}
+              onClick={stopRecording}
+            />
+          ) : (
+            <>
+              {!isRecording ? (
+                <FaMicrophone
+                  className={styles.icon}
+                  onClick={startRecording}
+                />
+              ) : (
+                <FaMicrophone className={styles.icon} onClick={stopRecording} />
+              )}
+            </>
+          )}
           <IoSend className={styles.icon} onClick={sendMessage} />
         </div>
       </div>
