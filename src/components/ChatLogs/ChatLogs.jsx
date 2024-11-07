@@ -35,6 +35,7 @@ export default function ChatLogs({
   const audioChunksRef = useRef([]);
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState("");
+  const [counter, setCounter] = useState(0);
   const [loading, setLoading] = useState(false);
   const [addFriendInput, setAddFriendInput] = useState("");
   const [currentTime, setCurrentTime] = useState({});
@@ -58,6 +59,7 @@ export default function ChatLogs({
 
     const intervalId = setInterval(() => {
       counterRef.current += 1;
+      setCounter(counterRef.current);
     }, 1000);
 
     mediaRecorderRef.current.ondataavailable = (event) => {
@@ -415,7 +417,7 @@ export default function ChatLogs({
       ) : (
         <div className={styles.messageSendingContainer}>
           <div className={styles.recorder}>
-            <h3>{formatVoiceTime(counterRef.current)}</h3>
+            <h3>{formatVoiceTime(counter)}</h3>
           </div>
           <div className={styles.iconsWrapper}>
             <IoSend
