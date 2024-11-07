@@ -274,3 +274,23 @@
 .timeDisplayReceived:hover {
   color: #b28cff;
 }
+
+.messageSendingContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+  background: #f8f5ff;
+  border-left: 1px solid #f0f0f0;
+}
+
+.recorder {
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.iconsWrapper {
+  display: flex;
+  justify-content: flex-end;
+}

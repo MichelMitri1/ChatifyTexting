@@ -40,6 +40,7 @@ export default function ChatLogs({
   const [currentTime, setCurrentTime] = useState({});
   const [isRecording, setIsRecording] = useState(false);
   const messageEndRef = useRef(null);
+  const counterRef = useRef(0);
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
@@ -55,6 +56,10 @@ export default function ChatLogs({
     mediaRecorderRef.current = new MediaRecorder(stream);
     audioChunksRef.current = [];
 
+    const intervalId = setInterval(() => {
+      counterRef.current += 1;
+    }, 1000);
+
     mediaRecorderRef.current.ondataavailable = (event) => {
       audioChunksRef.current.push(event.data);
     };
@@ -65,6 +70,8 @@ export default function ChatLogs({
       });
       audioChunksRef.current = [];
       uploadAudio(audioBlob);
+
+      clearInterval(intervalId);
     };
 
     mediaRecorderRef.current.start();
@@ -97,6 +104,7 @@ export default function ChatLogs({
       senderId,
       sentAt: serverTimestamp(),
       type: "audio",
+      duration: counterRef.current,
     };
 
     try {
@@ -112,6 +120,7 @@ export default function ChatLogs({
       }
 
       await addDoc(chatCollection, newMessage);
+      counterRef.current = 0;
     } catch (error) {
       toast.error("Failed to send audio message");
     }
@@ -348,6 +357,15 @@ export default function ChatLogs({
                       }
                     ></div>
                   </div>
+                  <span
+                    className={
+                      chat.senderId === currentUser.uid
+                        ? styles.timeDisplaySent
+                        : styles.timeDisplayReceived
+                    }
+                  >
+                    {formatVoiceTime(chat.duration)}
+                  </span>
                 </div>
               </div>
             ) : (
@@ -377,38 +395,36 @@ export default function ChatLogs({
         <div ref={messageEndRef} />
       </div>
 
-      <div className={styles.messageSendingContainer}>
-        <MdAddPhotoAlternate className={styles.icon} />
-        <input
-          type="text"
-          className={styles.messageInput}
-          placeholder="Type message here..."
-          value={message}
-          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-          onChange={(e) => setMessage(e.target.value)}
-        />
-        <div className={styles.iconsWrapper}>
-          <IoCameraOutline className={styles.icon} />
-          {isRecording ? (
-            <FaMicrophone
-              className={`${styles.icon} ${styles.recording}`}
+      {!isRecording ? (
+        <div className={styles.messageSendingContainer}>
+          <MdAddPhotoAlternate className={styles.icon} />
+          <input
+            type="text"
+            className={styles.messageInput}
+            placeholder="Type message here..."
+            value={message}
+            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+            onChange={(e) => setMessage(e.target.value)}
+          />
+          <div className={styles.iconsWrapper}>
+            <IoCameraOutline className={styles.icon} />
+            <FaMicrophone className={styles.icon} onClick={startRecording} />
+            <IoSend className={styles.icon} onClick={sendMessage} />
+          </div>
+        </div>
+      ) : (
+        <div className={styles.messageSendingContainer}>
+          <div className={styles.recorder}>
+            <h3>{formatVoiceTime(counterRef.current)}</h3>
+          </div>
+          <div className={styles.iconsWrapper}>
+            <IoSend
+              className={`${styles.icon} ${styles.sendVoiceIcon}`}
               onClick={stopRecording}
             />
-          ) : (
-            <>
-              {!isRecording ? (
-                <FaMicrophone
-                  className={styles.icon}
-                  onClick={startRecording}
-                />
-              ) : (
-                <FaMicrophone className={styles.icon} onClick={stopRecording} />
-              )}
-            </>
-          )}
-          <IoSend className={styles.icon} onClick={sendMessage} />
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
