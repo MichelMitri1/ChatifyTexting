@@ -3,8 +3,13 @@ import React, { useState } from "react";
 import styles from "./register.module.css";
 import { IoIosArrowBack } from "react-icons/io";
 import { collection, addDoc } from "firebase/firestore";
-import { signInWithEmailAndPassword, updateProfile } from "firebase/auth";
+import {
+  signInWithEmailAndPassword,
+  updateProfile,
+  createUserWithEmailAndPassword,
+} from "firebase/auth";
 import { auth } from "../../helpers/firebase";
+import { db } from "../../helpers/firebase";
 import { useRouter } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
 
@@ -19,6 +24,14 @@ export default function RegisterPage() {
   });
 
   async function registerUser(e) {
+    if (
+      !registerInput.nameOfUser ||
+      !registerInput.username ||
+      !registerInput.email ||
+      !registerInput.pass
+    ) {
+      toast.error("Enter all Fields Please");
+    }
     e.preventDefault();
     try {
       await createUserWithEmailAndPassword(
@@ -36,7 +49,7 @@ export default function RegisterPage() {
 
       await addDoc(collection(db, "users"), {
         name: registerInput.nameOfUser,
-        username: registerInput.user,
+        username: registerInput.username,
         email: registerInput.email,
         userId: userId,
       });
@@ -56,6 +69,7 @@ export default function RegisterPage() {
       router.push("/main");
     } catch (error) {
       toast.error("error creating user");
+      console.log(error);
     }
   }
 
