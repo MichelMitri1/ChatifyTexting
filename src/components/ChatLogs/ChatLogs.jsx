@@ -79,7 +79,7 @@ export default function ChatLogs({
   };
 
   const uploadAudio = async (audioBlob) => {
-    const audioRef = ref(storage, `audioMessages/${Date.now()}.mp3`);
+    const audioRef = ref(storage, `audioMessages/${Date.now()}.webm`);
     try {
       await uploadBytes(audioRef, audioBlob);
       const audioURL = await getDownloadURL(audioRef);
@@ -220,7 +220,7 @@ export default function ChatLogs({
     audio
       .play()
       .then(() => {
-        console.log("Audio playing");
+        return;
       })
       .catch((error) => {
         console.error("Error playing audio:", error);
@@ -336,7 +336,7 @@ export default function ChatLogs({
                           : styles.timeDisplayReceived
                       }
                     >
-                      {formatVoiceTime(currentTime[chat.id])}
+                      {formatVoiceTime(currentTime[chat.id]) || 0}
                     </span>
                   </div>
                   <div className={styles.progressBar}>
@@ -369,7 +369,7 @@ export default function ChatLogs({
               }
             >
               <p className={styles.dateOfMessage}>
-                {formatVoiceTime(currentTime[chat.id] || 0)}
+                {formatTime(parseToUnixTimestamp(chat.sentAt))}
               </p>
             </div>
           </div>

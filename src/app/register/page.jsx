@@ -73,7 +73,6 @@ export default function RegisterPage() {
       router.push("/main");
     } catch (error) {
       toast.error("error creating user");
-      console.log(error);
     }
     setLoading(false);
   }
