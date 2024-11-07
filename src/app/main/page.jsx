@@ -41,26 +41,36 @@ export default function MainPage() {
     }
   };
 
-  const getAllUsers = async () => {
-    const users = collection(db, "users");
-    const userSnapshot = await getDocs(users);
-    const result = userSnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-    setUsers(result);
+  const getAllUsers = () => {
+    const usersRef = collection(db, "users");
+
+    const unsubscribe = onSnapshot(usersRef, (snapshot) => {
+      const result = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setUsers(result);
+    });
+
+    return unsubscribe;
   };
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
       if (user) {
         setUser(user);
+
+        const unsubscribeFriends = getAllFriendRequests(user.uid);
+        const unsubscribeUsers = getAllUsers();
+
+        return () => {
+          unsubscribeFriends();
+          unsubscribeUsers();
+        };
       }
-      getAllFriendRequests(user.uid);
-      getAllUsers();
     });
 
-    return () => unsubscribe();
+    return () => unsubscribeAuth();
   }, []);
 
   return (

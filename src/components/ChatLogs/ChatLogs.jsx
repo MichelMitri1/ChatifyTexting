@@ -31,6 +31,7 @@ export default function ChatLogs({
 }) {
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
   const [addFriendInput, setAddFriendInput] = useState("");
   const messageEndRef = useRef(null);
 
@@ -38,6 +39,7 @@ export default function ChatLogs({
   const handleClose = () => setOpen(false);
 
   const addFriend = async () => {
+    setLoading(true);
     try {
       const foundUser = users.find((user) =>
         user.username.includes(addFriendInput)
@@ -58,7 +60,6 @@ export default function ChatLogs({
         "friendRequests"
       );
 
-      // Add the friend request document to the requested user's friend request collection
       await addDoc(requestCollection, {
         friends: false,
         idOfUserSent: currentUser.uid,
@@ -83,11 +84,13 @@ export default function ChatLogs({
       });
 
       setAddFriendInput("");
+      setLoading(false);
       setOpen(false);
       toast.success("Friend Request Sent!");
       return () => unsubscribe();
     } catch (error) {
       toast.error("Error adding friend:", error);
+      setLoading(false);
       throw error;
     }
   };

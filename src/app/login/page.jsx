@@ -14,9 +14,12 @@ export default function LoginPage() {
     pass: "",
   });
 
+  const [loading, setLoading] = useState(false);
+
   const loginUserAux = async (e) => {
     e.preventDefault();
     try {
+      setLoading(true);
       const user = await signInWithEmailAndPassword(
         auth,
         loginInfo.email,
@@ -32,6 +35,7 @@ export default function LoginPage() {
     } catch (error) {
       toast.error("Cannot login user!");
     }
+    setLoading(false);
   };
 
   const handleLoginInfo = (e) => {
@@ -75,9 +79,21 @@ export default function LoginPage() {
             onChange={(e) => handleLoginInfo(e)}
           />
         </div>
-        <button className={styles.loginButton} onClick={(e) => loginUserAux(e)}>
-          Login
-        </button>
+        {!loading ? (
+          <button
+            className={styles.loginButton}
+            onClick={(e) => loginUserAux(e)}
+          >
+            Login
+          </button>
+        ) : (
+          <div className="spinner-container">
+            <div className="spinner">
+              <div className="spinner-shape"></div>
+            </div>
+          </div>
+        )}
+
         <a href="/register" className={styles.registerLink}>
           Don't Have an Account?
         </a>

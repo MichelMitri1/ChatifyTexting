@@ -16,6 +16,8 @@ import toast, { Toaster } from "react-hot-toast";
 export default function RegisterPage() {
   const router = useRouter();
 
+  const [loading, setLoading] = useState(false);
+
   const [registerInput, setRegisterInput] = useState({
     nameOfUser: "",
     username: "",
@@ -35,6 +37,7 @@ export default function RegisterPage() {
     }
     e.preventDefault();
     try {
+      setLoading(true);
       await createUserWithEmailAndPassword(
         auth,
         registerInput.email,
@@ -72,6 +75,7 @@ export default function RegisterPage() {
       toast.error("error creating user");
       console.log(error);
     }
+    setLoading(false);
   }
 
   const handleRegisterInput = (e) => {
@@ -147,12 +151,20 @@ export default function RegisterPage() {
             onChange={(e) => handleRegisterInput(e)}
           />
         </div>
-        <button
-          className={styles.registerButton}
-          onClick={(e) => registerUser(e)}
-        >
-          Register
-        </button>
+        {!loading ? (
+          <button
+            className={styles.registerButton}
+            onClick={(e) => registerUser(e)}
+          >
+            Register
+          </button>
+        ) : (
+          <div className="spinner-container">
+            <div className="spinner">
+              <div className="spinner-shape"></div>
+            </div>
+          </div>
+        )}
       </div>
     </form>
   );
