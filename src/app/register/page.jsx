@@ -31,6 +31,7 @@ export default function RegisterPage() {
       !registerInput.pass
     ) {
       toast.error("Enter all Fields Please");
+      return;
     }
     e.preventDefault();
     try {

@@ -43,10 +43,6 @@ export default function ChatLogs({
         user.username.includes(addFriendInput)
       );
 
-      console.log(users);
-
-      console.log(foundUser);
-
       if (!foundUser) {
         toast.error("User not found");
         return;
@@ -62,6 +58,7 @@ export default function ChatLogs({
         "friendRequests"
       );
 
+      // Add the friend request document to the requested user's friend request collection
       await addDoc(requestCollection, {
         friends: false,
         idOfUserSent: currentUser.uid,
@@ -70,7 +67,14 @@ export default function ChatLogs({
         nameOfUserSent: currentUser.displayName,
       });
 
-      const unsubscribe = onSnapshot(requestCollection, (snapshot) => {
+      const userRequestCollection = collection(
+        db,
+        "allRequests",
+        currentUser.uid,
+        "friendRequests"
+      );
+
+      const unsubscribe = onSnapshot(userRequestCollection, (snapshot) => {
         const updatedRequests = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),

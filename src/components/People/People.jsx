@@ -20,7 +20,6 @@ import { FaCheck } from "react-icons/fa";
 import { IoClose } from "react-icons/io5";
 import styles from "./people.module.css";
 import toast, { Toaster } from "react-hot-toast";
-import { parseToUnixTimestamp } from "@/helpers/utils";
 
 export default function People({
   currentUser,
