@@ -28,6 +28,8 @@ export default function People({
   setFriendRequests,
   setChats,
   setClickedUser,
+  setIsChatOpen,
+  isChatOpen,
 }) {
   const router = useRouter();
 
@@ -75,6 +77,7 @@ export default function People({
     }));
 
     setChats(chat);
+    setIsChatOpen(true);
   };
 
   const handleAcceptRequest = async (idOfUserSent) => {
@@ -188,12 +191,12 @@ export default function People({
   }, [currentUser.uid, setFriendRequests]);
 
   return (
-    <div className={styles.peopleContainer}>
+    <div
+      className={!isChatOpen ? styles.peopleContainer : styles.peopleNotOpen}
+    >
       <Toaster />
       <div className={styles.peopleNavContainer}>
-        <div className="">
-          <h2 className={styles.chatsHeader}>Chats</h2>
-        </div>
+        <h2 className={styles.chatsHeader}>Chats</h2>
         <div className={styles.iconsContainer}>
           <IoSettingsOutline
             className={styles.icon}

@@ -22,6 +22,7 @@ import Modal from "@mui/material/Modal";
 import toast, { Toaster } from "react-hot-toast";
 import { formatTime, parseToUnixTimestamp, formatDate } from "@/helpers/utils";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { IoIosArrowBack } from "react-icons/io";
 import { FaPlay } from "react-icons/fa";
 
 export default function ChatLogs({
@@ -31,6 +32,8 @@ export default function ChatLogs({
   chats,
   setChats,
   clickedUser,
+  setIsChatOpen,
+  isChatOpen,
 }) {
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
@@ -303,7 +306,7 @@ export default function ChatLogs({
   }, [chats]);
 
   return (
-    <div className={styles.chatLogContainer}>
+    <div className={isChatOpen ? styles.chatLogContainer : styles.chatNotOpen}>
       <Toaster />
       <Modal open={open} onClose={handleClose}>
         <Box className={styles.modalWrapper}>
@@ -325,7 +328,15 @@ export default function ChatLogs({
       </Modal>
 
       <div className={styles.chatLogHeader}>
-        <h2 className={styles.name}>{clickedUser.nameOfUserSent || "Name"}</h2>
+        <div className={styles.nameWrapper}>
+          <IoIosArrowBack
+            className={`${styles.icon} ${styles.phoneIcon}`}
+            onClick={() => setIsChatOpen(false)}
+          />
+          <h2 className={styles.name}>
+            {clickedUser.nameOfUserSent || "Name"}
+          </h2>
+        </div>
         <div className={styles.callWrapper}>
           <FaVideo className={styles.icon} />
           <FaPhone className={styles.icon} />

@@ -1,4 +1,5 @@
-.chatLogContainer {
+.chatLogContainer,
+.chatNotOpen {
   display: flex;
   width: 100%;
   flex-direction: column;
@@ -54,6 +55,12 @@
   padding: 1rem;
   border-bottom: 1px solid #f0f0f0;
   background-color: white;
+}
+
+.nameWrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .name {
@@ -167,6 +174,10 @@
   font-size: 1.25rem;
   color: #8b5cf6;
   cursor: pointer;
+}
+
+.phoneIcon {
+  display: none;
 }
 
 .messageInput:focus {
@@ -321,4 +332,14 @@
   margin: 10px 0;
   font-weight: bold;
   color: #666;
+}
+
+@media (max-width: 750px) {
+  .chatNotOpen {
+    display: none;
+  }
+
+  .phoneIcon {
+    display: block;
+  }
 }

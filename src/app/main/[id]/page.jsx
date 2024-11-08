@@ -14,6 +14,7 @@ export default function MainPage() {
   const [user, setUser] = useState({});
   const [users, setUsers] = useState([]);
   const [clickedUser, setClickedUser] = useState({});
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   const getAllFriendRequests = async (userId) => {
     if (!userId) {
@@ -83,6 +84,8 @@ export default function MainPage() {
         setFriendRequests={setFriendRequests}
         setChats={setChats}
         setClickedUser={setClickedUser}
+        setIsChatOpen={setIsChatOpen}
+        isChatOpen={isChatOpen}
       />
       <ChatLogs
         currentUser={user}
@@ -91,6 +94,8 @@ export default function MainPage() {
         chats={chats}
         setChats={setChats}
         clickedUser={clickedUser}
+        setIsChatOpen={setIsChatOpen}
+        isChatOpen={isChatOpen}
       />
     </div>
   );
