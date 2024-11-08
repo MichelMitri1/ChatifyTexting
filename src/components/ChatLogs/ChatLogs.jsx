@@ -14,6 +14,7 @@ import { db, storage } from "../../helpers/firebase";
 import { FaMicrophone } from "react-icons/fa";
 import { MdAddPhotoAlternate } from "react-icons/md";
 import { IoCameraOutline, IoSend } from "react-icons/io5";
+import { FaPause } from "react-icons/fa6";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Modal from "@mui/material/Modal";
@@ -225,14 +226,22 @@ export default function ChatLogs({
     setIsPlaying((prev) => ({ ...prev, [chat.id]: true }));
 
     audio.ontimeupdate = () => {
+      console.log(audio.currentTime);
+
       setCurrentTime((prevTimes) => ({
         ...prevTimes,
-        [chat.chatId]: Math.floor(audio.currentTime),
+        [chat.id]: Math.floor(audio.currentTime),
       }));
     };
 
+    console.log(currentTime[chat]);
+
     audio.onended = () => {
       setIsPlaying((prev) => ({ ...prev, [chat.id]: false }));
+      setCurrentTime((prevTimes) => ({
+        ...prevTimes,
+        [chat.id]: 0,
+      }));
     };
 
     audio
@@ -338,16 +347,30 @@ export default function ChatLogs({
               >
                 <div className={styles.audioPlayer}>
                   <div className={styles.audioControls}>
-                    <button
-                      className={
-                        chat.senderId === currentUser.uid
-                          ? styles.playButtonSent
-                          : styles.playButtonReceived
-                      }
-                      onClick={() => playAudio(chat)}
-                    >
-                      <FaPlay />
-                    </button>
+                    {isPlaying[chat.id] ? (
+                      <button
+                        className={
+                          chat.senderId === currentUser.uid
+                            ? styles.playButtonSent
+                            : styles.playButtonReceived
+                        }
+                        onClick={() => playAudio(chat)}
+                      >
+                        <FaPause />
+                      </button>
+                    ) : (
+                      <button
+                        className={
+                          chat.senderId === currentUser.uid
+                            ? styles.playButtonSent
+                            : styles.playButtonReceived
+                        }
+                        onClick={() => playAudio(chat)}
+                      >
+                        <FaPlay />
+                      </button>
+                    )}
+
                     <span
                       className={
                         chat.senderId === currentUser.uid

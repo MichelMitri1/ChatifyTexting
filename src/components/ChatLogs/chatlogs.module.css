@@ -232,7 +232,7 @@
 }
 
 .progressBar {
-  position: relative; /* Added to contain the moving bar */
+  position: relative;
   flex-grow: 1;
   height: 4px;
   background-color: #f0f0f0;
@@ -260,10 +260,11 @@
   top: 0;
   left: 0;
   height: 100%;
-  background-color: rgba(132, 99, 255, 0.3); /* Lighter version of #8463ff */
-  width: 20px; /* Initial width */
+  background-color: rgba(132, 99, 255, 0.3);
+  z-index: 999;
+  width: 20px;
   transition: width 0.2s ease;
-  pointer-events: none; /* So it doesn't interfere with clicks on the main bar */
+  pointer-events: none;
 }
 
 .playButtonReceived,
