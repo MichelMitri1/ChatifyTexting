@@ -19,8 +19,7 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Modal from "@mui/material/Modal";
 import toast, { Toaster } from "react-hot-toast";
-import { formatTime } from "../../helpers/utils";
-import { parseToUnixTimestamp } from "@/helpers/utils";
+import { formatTime, parseToUnixTimestamp, formatDate } from "@/helpers/utils";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { FaPlay } from "react-icons/fa";
 
@@ -226,15 +225,11 @@ export default function ChatLogs({
     setIsPlaying((prev) => ({ ...prev, [chat.id]: true }));
 
     audio.ontimeupdate = () => {
-      console.log(audio.currentTime);
-
       setCurrentTime((prevTimes) => ({
         ...prevTimes,
         [chat.id]: Math.floor(audio.currentTime),
       }));
     };
-
-    console.log(currentTime[chat]);
 
     audio.onended = () => {
       setIsPlaying((prev) => ({ ...prev, [chat.id]: false }));
@@ -328,113 +323,128 @@ export default function ChatLogs({
       </div>
 
       <div className={styles.messagesContainer}>
-        {chats.map((chat) => (
-          <div
-            key={chat.id}
-            className={
-              chat.senderId === currentUser.uid
-                ? styles.messageWrapperSent
-                : styles.messageWrapperReceived
-            }
-          >
-            {chat.type === "audio" ? (
+        {chats.map((chat, index) => {
+          const chatDate = formatDate(parseToUnixTimestamp(chat.sentAt));
+          const showDate =
+            index === 0 ||
+            chatDate !==
+              formatDate(parseToUnixTimestamp(chats[index - 1].sentAt));
+          return (
+            <>
+              {showDate && (
+                <div className={styles.dateHeader}>
+                  <p>{chatDate}</p>
+                </div>
+              )}
               <div
+                key={chat.id}
                 className={
                   chat.senderId === currentUser.uid
-                    ? styles.audioPlayerContainerSent
-                    : styles.audioPlayerContainerReceived
+                    ? styles.messageWrapperSent
+                    : styles.messageWrapperReceived
                 }
               >
-                <div className={styles.audioPlayer}>
-                  <div className={styles.audioControls}>
-                    {isPlaying[chat.id] ? (
-                      <button
-                        className={
-                          chat.senderId === currentUser.uid
-                            ? styles.playButtonSent
-                            : styles.playButtonReceived
-                        }
-                        onClick={() => playAudio(chat)}
-                      >
-                        <FaPause />
-                      </button>
-                    ) : (
-                      <button
-                        className={
-                          chat.senderId === currentUser.uid
-                            ? styles.playButtonSent
-                            : styles.playButtonReceived
-                        }
-                        onClick={() => playAudio(chat)}
-                      >
-                        <FaPlay />
-                      </button>
-                    )}
-
-                    <span
-                      className={
-                        chat.senderId === currentUser.uid
-                          ? styles.timeDisplaySent
-                          : styles.timeDisplayReceived
-                      }
-                    >
-                      {formatVoiceTime(currentTime[chat.id]) || 0}
-                    </span>
-                  </div>
-                  <div className={styles.progressBar}>
-                    <div
-                      className={
-                        chat.senderId === currentUser.uid
-                          ? styles.progressSent
-                          : styles.progressReceived
-                      }
-                    ></div>
-                    {isPlaying[chat.id] && (
-                      <div
-                        className={styles.progressMoving}
-                        style={{
-                          width: `${
-                            (currentTime[chat.id] / chat.duration || 1) * 100
-                          }%`,
-                        }}
-                      ></div>
-                    )}
-                  </div>
-                  <span
+                {chat.type === "audio" ? (
+                  <div
                     className={
                       chat.senderId === currentUser.uid
-                        ? styles.timeDisplaySent
-                        : styles.timeDisplayReceived
+                        ? styles.audioPlayerContainerSent
+                        : styles.audioPlayerContainerReceived
                     }
                   >
-                    {formatVoiceTime(chat.duration)}
-                  </span>
+                    <div className={styles.audioPlayer}>
+                      <div className={styles.audioControls}>
+                        {isPlaying[chat.id] ? (
+                          <button
+                            className={
+                              chat.senderId === currentUser.uid
+                                ? styles.playButtonSent
+                                : styles.playButtonReceived
+                            }
+                            onClick={() => playAudio(chat)}
+                          >
+                            <FaPause />
+                          </button>
+                        ) : (
+                          <button
+                            className={
+                              chat.senderId === currentUser.uid
+                                ? styles.playButtonSent
+                                : styles.playButtonReceived
+                            }
+                            onClick={() => playAudio(chat)}
+                          >
+                            <FaPlay />
+                          </button>
+                        )}
+
+                        <span
+                          className={
+                            chat.senderId === currentUser.uid
+                              ? styles.timeDisplaySent
+                              : styles.timeDisplayReceived
+                          }
+                        >
+                          {formatVoiceTime(currentTime[chat.id]) || 0}
+                        </span>
+                      </div>
+                      <div className={styles.progressBar}>
+                        <div
+                          className={
+                            chat.senderId === currentUser.uid
+                              ? styles.progressSent
+                              : styles.progressReceived
+                          }
+                        ></div>
+                        {isPlaying[chat.id] && (
+                          <div
+                            className={styles.progressMoving}
+                            style={{
+                              width: `${
+                                (currentTime[chat.id] / chat.duration || 1) *
+                                100
+                              }%`,
+                            }}
+                          ></div>
+                        )}
+                      </div>
+                      <span
+                        className={
+                          chat.senderId === currentUser.uid
+                            ? styles.timeDisplaySent
+                            : styles.timeDisplayReceived
+                        }
+                      >
+                        {formatVoiceTime(chat.duration)}
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <p
+                    className={
+                      chat.senderId === currentUser.uid
+                        ? styles.messageSent
+                        : styles.messageReceived
+                    }
+                  >
+                    {chat.message}
+                  </p>
+                )}
+                <div
+                  className={
+                    chat.senderId === currentUser.uid
+                      ? styles.dateOfMessageWrapperSent
+                      : styles.dateOfMessageWrapperReceived
+                  }
+                >
+                  <p className={styles.dateOfMessage}>
+                    {formatTime(parseToUnixTimestamp(chat.sentAt))}
+                  </p>
                 </div>
               </div>
-            ) : (
-              <p
-                className={
-                  chat.senderId === currentUser.uid
-                    ? styles.messageSent
-                    : styles.messageReceived
-                }
-              >
-                {chat.message}
-              </p>
-            )}
-            <div
-              className={
-                chat.senderId === currentUser.uid
-                  ? styles.dateOfMessageWrapperSent
-                  : styles.dateOfMessageWrapperReceived
-              }
-            >
-              <p className={styles.dateOfMessage}>
-                {formatTime(parseToUnixTimestamp(chat.sentAt))}
-              </p>
-            </div>
-          </div>
-        ))}
+            </>
+          );
+        })}
         <div ref={messageEndRef} />
       </div>
 

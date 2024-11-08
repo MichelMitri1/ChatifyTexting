@@ -165,8 +165,6 @@ export default function People({
 
       toast.success("Friend request declined successfully");
     } catch (error) {
-      toast.log(error);
-
       toast.error("Error declining friend request:", error.message);
     }
   };

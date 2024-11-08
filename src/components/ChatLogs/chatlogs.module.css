@@ -244,14 +244,14 @@
 .progressSent {
   height: 100%;
   background-color: #f0f0f0;
-  width: 200px;
+  width: 150px;
   transition: width 0.2s ease;
 }
 
 .progressReceived {
   height: 100%;
   background-color: #8463ff;
-  width: 200px;
+  width: 150px;
   transition: width 0.2s ease;
 }
 
@@ -306,4 +306,13 @@
 .iconsWrapper {
   display: flex;
   justify-content: flex-end;
+}
+
+.dateHeader {
+  display: flex;
+  justify-content: center;
+  text-align: center;
+  margin: 10px 0;
+  font-weight: bold;
+  color: #666;
 }
