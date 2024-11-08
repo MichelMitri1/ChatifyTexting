@@ -34,10 +34,12 @@ export default function ChatLogs({
   clickedUser,
   setIsChatOpen,
   isChatOpen,
+  handleOpen,
+  open,
+  setOpen,
 }) {
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
-  const [open, setOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [counter, setCounter] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -49,7 +51,6 @@ export default function ChatLogs({
   const audioRef = useRef(null);
   const counterRef = useRef(0);
 
-  const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
   const formatVoiceTime = (seconds) => {

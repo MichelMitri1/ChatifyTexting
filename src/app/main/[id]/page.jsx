@@ -15,7 +15,10 @@ export default function MainPage() {
   const [users, setUsers] = useState([]);
   const [clickedUser, setClickedUser] = useState({});
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [open, setOpen] = useState(false);
 
+  const handleOpen = () => setOpen(true);
+  
   const getAllFriendRequests = async (userId) => {
     if (!userId) {
       toast.error("User ID is undefined or invalid.");
@@ -86,6 +89,7 @@ export default function MainPage() {
         setClickedUser={setClickedUser}
         setIsChatOpen={setIsChatOpen}
         isChatOpen={isChatOpen}
+        handleOpen={handleOpen}
       />
       <ChatLogs
         currentUser={user}
@@ -96,6 +100,9 @@ export default function MainPage() {
         clickedUser={clickedUser}
         setIsChatOpen={setIsChatOpen}
         isChatOpen={isChatOpen}
+        handleOpen={handleOpen}
+        setOpen={setOpen}
+        open={open}
       />
     </div>
   );

@@ -30,6 +30,7 @@ export default function People({
   setClickedUser,
   setIsChatOpen,
   isChatOpen,
+  handleOpen,
 }) {
   const router = useRouter();
 
@@ -202,7 +203,7 @@ export default function People({
             className={styles.icon}
             onClick={() => router.push("/settings")}
           />
-          <IoPersonSharp className={styles.icon} />
+          <IoPersonSharp className={styles.icon} onClick={handleOpen} />
           <IoIosSearch
             className={styles.icon}
             onClick={() => setIsSearchOpen(!isSearchOpen)}
