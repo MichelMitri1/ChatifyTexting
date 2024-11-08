@@ -11,7 +11,8 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import { db, storage } from "../../helpers/firebase";
-import { FaMicrophone } from "react-icons/fa";
+import { FaMicrophone, FaVideo } from "react-icons/fa";
+import { FaPhone } from "react-icons/fa6";
 import { MdAddPhotoAlternate } from "react-icons/md";
 import { IoCameraOutline, IoSend } from "react-icons/io5";
 import { FaPause } from "react-icons/fa6";
@@ -42,6 +43,7 @@ export default function ChatLogs({
   const [isPlaying, setIsPlaying] = useState({});
   const [isRecording, setIsRecording] = useState(false);
   const messageEndRef = useRef(null);
+  const audioRef = useRef(null);
   const counterRef = useRef(0);
 
   const handleOpen = () => setOpen(true);
@@ -216,38 +218,45 @@ export default function ChatLogs({
   };
 
   const playAudio = (chat) => {
-    const audio = new Audio(chat.audioURL);
-    setCurrentTime((prevTimes) => ({
-      ...prevTimes,
-      [chat.chatId]: 0,
-    }));
+    if (audioRef.current && audioRef.current.src === chat.audioURL) {
+      if (audioRef.current.paused) {
+        audioRef.current.play();
+        setIsPlaying((prev) => ({ ...prev, [chat.id]: true }));
+      } else {
+        audioRef.current.pause();
+        setIsPlaying((prev) => ({ ...prev, [chat.id]: false }));
+      }
+      return;
+    }
 
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+
+    audioRef.current = new Audio(chat.audioURL);
     setIsPlaying((prev) => ({ ...prev, [chat.id]: true }));
 
-    audio.ontimeupdate = () => {
+    audioRef.current.ontimeupdate = () => {
       setCurrentTime((prevTimes) => ({
         ...prevTimes,
-        [chat.id]: Math.floor(audio.currentTime),
+        [chat.id]: Math.floor(audioRef.current.currentTime),
+        [chat.sentAt]: audioRef.current.currentTime,
       }));
     };
 
-    audio.onended = () => {
+    audioRef.current.onended = () => {
       setIsPlaying((prev) => ({ ...prev, [chat.id]: false }));
       setCurrentTime((prevTimes) => ({
         ...prevTimes,
         [chat.id]: 0,
+        [chat.sentAt]: 0,
       }));
     };
 
-    audio
+    audioRef.current
       .play()
-      .then(() => {
-        return;
-      })
-      .catch((error) => {
-        setIsPlaying((prev) => ({ ...prev, [chat.id]: false }));
-        console.error("Error playing audio:", error);
-      });
+      .catch((error) => console.error("Error playing audio:", error));
   };
 
   useEffect(() => {
@@ -317,9 +326,13 @@ export default function ChatLogs({
 
       <div className={styles.chatLogHeader}>
         <h2 className={styles.name}>{clickedUser.nameOfUserSent || "Name"}</h2>
-        <button className={styles.addFriendButton} onClick={handleOpen}>
-          Add
-        </button>
+        <div className={styles.callWrapper}>
+          <FaVideo className={styles.icon} />
+          <FaPhone className={styles.icon} />
+          <button className={styles.addFriendButton} onClick={handleOpen}>
+            Add
+          </button>
+        </div>
       </div>
 
       <div className={styles.messagesContainer}>
@@ -401,8 +414,8 @@ export default function ChatLogs({
                             className={styles.progressMoving}
                             style={{
                               width: `${
-                                (currentTime[chat.id] / chat.duration || 1) *
-                                100
+                                (currentTime[chat.sentAt] / chat.duration ||
+                                  1) * 100
                               }%`,
                             }}
                           ></div>

@@ -41,6 +41,12 @@
   opacity: 0.9;
 }
 
+.callWrapper {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
 .chatLogHeader {
   display: flex;
   justify-content: space-between;
