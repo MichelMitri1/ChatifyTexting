@@ -39,6 +39,7 @@ export default function ChatLogs({
   const [loading, setLoading] = useState(false);
   const [addFriendInput, setAddFriendInput] = useState("");
   const [currentTime, setCurrentTime] = useState({});
+  const [isPlaying, setIsPlaying] = useState({});
   const [isRecording, setIsRecording] = useState(false);
   const messageEndRef = useRef(null);
   const counterRef = useRef(0);
@@ -214,18 +215,24 @@ export default function ChatLogs({
     }
   };
 
-  const playAudio = (audioURL, chatId) => {
-    const audio = new Audio(audioURL);
+  const playAudio = (chat) => {
+    const audio = new Audio(chat.audioURL);
     setCurrentTime((prevTimes) => ({
       ...prevTimes,
-      [chatId]: 0,
+      [chat.chatId]: 0,
     }));
+
+    setIsPlaying((prev) => ({ ...prev, [chat.id]: true }));
 
     audio.ontimeupdate = () => {
       setCurrentTime((prevTimes) => ({
         ...prevTimes,
-        [chatId]: Math.floor(audio.currentTime),
+        [chat.chatId]: Math.floor(audio.currentTime),
       }));
+    };
+
+    audio.onended = () => {
+      setIsPlaying((prev) => ({ ...prev, [chat.id]: false }));
     };
 
     audio
@@ -234,6 +241,7 @@ export default function ChatLogs({
         return;
       })
       .catch((error) => {
+        setIsPlaying((prev) => ({ ...prev, [chat.id]: false }));
         console.error("Error playing audio:", error);
       });
   };
@@ -336,7 +344,7 @@ export default function ChatLogs({
                           ? styles.playButtonSent
                           : styles.playButtonReceived
                       }
-                      onClick={() => playAudio(chat.audioURL, chat.id)}
+                      onClick={() => playAudio(chat)}
                     >
                       <FaPlay />
                     </button>
@@ -358,6 +366,16 @@ export default function ChatLogs({
                           : styles.progressReceived
                       }
                     ></div>
+                    {isPlaying[chat.id] && (
+                      <div
+                        className={styles.progressMoving}
+                        style={{
+                          width: `${
+                            (currentTime[chat.id] / chat.duration || 1) * 100
+                          }%`,
+                        }}
+                      ></div>
+                    )}
                   </div>
                   <span
                     className={
