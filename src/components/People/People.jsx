@@ -203,7 +203,10 @@ export default function People({
             className={styles.icon}
             onClick={() => router.push("/settings")}
           />
-          <IoPersonSharp className={styles.icon} onClick={handleOpen} />
+          <IoPersonSharp
+            className={`${styles.icon} ${styles.person}`}
+            onClick={handleOpen}
+          />
           <IoIosSearch
             className={styles.icon}
             onClick={() => setIsSearchOpen(!isSearchOpen)}

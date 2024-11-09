@@ -335,7 +335,8 @@
 }
 
 @media (max-width: 750px) {
-  .chatNotOpen {
+  .chatNotOpen,
+  .addFriendButton {
     display: none;
   }
 
