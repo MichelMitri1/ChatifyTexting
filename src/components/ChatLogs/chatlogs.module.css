@@ -343,4 +343,8 @@
   .phoneIcon {
     display: block;
   }
+
+  .messageInput {
+    font-size: 14px;
+  }
 }
