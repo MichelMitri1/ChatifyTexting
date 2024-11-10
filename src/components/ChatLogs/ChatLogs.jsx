@@ -45,6 +45,8 @@ export default function ChatLogs({
   const [counter, setCounter] = useState(0);
   const [loading, setLoading] = useState(false);
   const [addFriendInput, setAddFriendInput] = useState("");
+  const [imageOpen, setImageOpen] = useState(false);
+  const [openedImg, setOpenedImg] = useState({});
   const [currentTime, setCurrentTime] = useState({});
   const [isPlaying, setIsPlaying] = useState({});
   const [isRecording, setIsRecording] = useState(false);
@@ -53,6 +55,7 @@ export default function ChatLogs({
   const counterRef = useRef(0);
 
   const handleClose = () => setOpen(false);
+  const handleImageClose = () => setImageOpen(false);
 
   const handleImageUpload = async (event) => {
     const file = event.target.files[0];
@@ -364,7 +367,6 @@ export default function ChatLogs({
           </button>
         </Box>
       </Modal>
-
       <div className={styles.chatLogHeader}>
         <div className={styles.nameWrapper}>
           <IoIosArrowBack
@@ -493,7 +495,24 @@ export default function ChatLogs({
                       src={chat.imageURL}
                       alt="Sent image"
                       className={styles.chatImage}
+                      onClick={() => {
+                        setOpenedImg(chat.imageURL);
+                        setImageOpen(true);
+                        console.log(openedImg);
+                        
+                      }}
                     />
+
+                    <Modal open={imageOpen} onClose={handleImageClose}>
+                      <Box className={styles.modalImageWrapper}>
+                        <Typography sx={{ mt: 2 }}></Typography>
+                        <img
+                          src={openedImg}
+                          alt="Sent image"
+                          className={styles.chatImageModal}
+                        />
+                      </Box>
+                    </Modal>
                   </div>
                 ) : (
                   <p
