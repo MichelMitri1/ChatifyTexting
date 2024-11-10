@@ -18,7 +18,7 @@ export default function MainPage() {
   const [open, setOpen] = useState(false);
 
   const handleOpen = () => setOpen(true);
-  
+
   const getAllFriendRequests = async (userId) => {
     if (!userId) {
       toast.error("User ID is undefined or invalid.");

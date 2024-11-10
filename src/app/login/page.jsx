@@ -1,10 +1,10 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import styles from "./loginPage.module.css";
 import { useRouter } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
 import { auth } from "../../helpers/firebase";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { onAuthStateChanged, signInWithEmailAndPassword } from "firebase/auth";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -45,6 +45,14 @@ export default function LoginPage() {
       [name]: value,
     });
   };
+
+  useEffect(() => {
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        router.push("/main");
+      }
+    });
+  }, []);
 
   return (
     <form

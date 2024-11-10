@@ -12,6 +12,7 @@
   left: 50%;
   transform: translate(-50%, -50%);
   background-color: white;
+  outline: none;
   padding: 2rem;
   border-radius: 8px;
   width: 90%;
@@ -69,7 +70,8 @@
   margin: 0;
 }
 
-.addFriendButton {
+.addFriendButton,
+.cameraButton {
   background-color: #8b5cf6;
   color: white;
   padding: 0.5rem 1.5rem;
@@ -348,11 +350,13 @@
   max-height: 700px;
 }
 
-.modalImageWrapper {
+.modalImageWrapper,
+.modalCameraWrapper {
   display: flex;
   align-items: center;
   justify-content: center;
   position: absolute;
+  outline: none;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
@@ -360,11 +364,33 @@
   height: 30%;
 }
 
+.modalCameraWrapper {
+  width: 100%;
+  height: 100%;
+  background-color: #f8f5ff;
+  padding: 12px;
+}
+
+.videoPreview {
+  width: 100%;
+  border-radius: 12px;
+  border: 3px solid #8b5cf6;
+  background-color: #1a1a1a;
+  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.2);
+  transform: scaleX(-1);
+}
+
 .chatImage {
   max-width: 100%;
   border-radius: 8px;
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
   max-height: 500px;
+}
+
+.cameraButtonsWrapper {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
 }
 
 @media (max-width: 750px) {
@@ -379,5 +405,11 @@
 
   .messageInput {
     font-size: 14px;
+  }
+}
+
+@media (max-width: 650px) {
+  .modalImageWrapper {
+    width: 80%;
   }
 }

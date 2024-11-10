@@ -38,21 +38,25 @@ export default function ChatLogs({
   open,
   setOpen,
 }) {
-  const mediaRecorderRef = useRef(null);
-  const audioChunksRef = useRef([]);
-  const fileInputRef = useRef(null);
-  const [message, setMessage] = useState("");
-  const [counter, setCounter] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [addFriendInput, setAddFriendInput] = useState("");
-  const [imageOpen, setImageOpen] = useState(false);
-  const [openedImg, setOpenedImg] = useState({});
-  const [currentTime, setCurrentTime] = useState({});
-  const [isPlaying, setIsPlaying] = useState({});
-  const [isRecording, setIsRecording] = useState(false);
-  const messageEndRef = useRef(null);
-  const audioRef = useRef(null);
   const counterRef = useRef(0);
+  const audioRef = useRef(null);
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const audioChunksRef = useRef([]);
+  const messageEndRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const [counter, setCounter] = useState(0);
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [openedImg, setOpenedImg] = useState({});
+  const [openedVideo, setOpenedVideo] = useState(false);
+  const [isPlaying, setIsPlaying] = useState({});
+  const [imageOpen, setImageOpen] = useState(false);
+  const [currentTime, setCurrentTime] = useState({});
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [addFriendInput, setAddFriendInput] = useState("");
 
   const handleClose = () => setOpen(false);
   const handleImageClose = () => setImageOpen(false);
@@ -90,6 +94,85 @@ export default function ChatLogs({
       await addDoc(chatCollection, newMessage);
     } catch (error) {
       console.error("Error uploading file:", error);
+    }
+  };
+
+  const openCamera = async () => {
+    try {
+      setCameraOpen(true);
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      videoRef.current.srcObject = stream;
+      videoRef.current.play();
+      console.log("success");
+    } catch (error) {
+      console.error("Error accessing camera:", error);
+    }
+  };
+
+  const handleCapture = async () => {
+    if (!canvasRef.current || !videoRef.current) return;
+
+    console.log("test");
+
+    const canvas = canvasRef.current;
+    const video = videoRef.current;
+    const context = canvas.getContext("2d");
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    const blob = await new Promise((resolve) =>
+      canvas.toBlob(resolve, "image/jpg")
+    );
+
+    await uploadCapturedImage(blob);
+  };
+
+  const uploadCapturedImage = async (blob) => {
+    if (!blob) return;
+
+    try {
+      setOpenedVideo(false);
+      const storageRef = ref(storage, `images/${Date.now()}.jpg`);
+      await uploadBytes(storageRef, blob);
+
+      const downloadURL = await getDownloadURL(storageRef);
+
+      const senderId = currentUser.uid;
+      const sentToId = clickedUser.idOfUserSent;
+      const newMessage = {
+        imageURL: downloadURL,
+        senderId,
+        sentAt: serverTimestamp(),
+        type: "image",
+      };
+
+      let chatId = `${senderId}${sentToId}`;
+      let chatCollection = collection(db, "chats", chatId, "messages");
+
+      let collectionSnapshot = await getDocs(chatCollection);
+      if (collectionSnapshot.empty) {
+        chatId = `${sentToId}${senderId}`;
+        chatCollection = collection(db, "chats", chatId, "messages");
+        collectionSnapshot = await getDocs(chatCollection);
+        if (collectionSnapshot.empty) return;
+      }
+
+      await addDoc(chatCollection, newMessage);
+    } catch (error) {
+      console.error("Error uploading captured image:", error);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setOpenedVideo(false);
+    if (videoRef.current && videoRef.current.srcObject) {
+      let stream = videoRef.current.srcObject;
+      let tracks = stream.getTracks();
+      tracks.forEach((track) => track.stop());
+      videoRef.current.srcObject = null;
     }
   };
 
@@ -346,6 +429,12 @@ export default function ChatLogs({
     setCurrentTime(initialTimeState);
   }, [chats]);
 
+  useEffect(() => {
+    if (openedVideo) {
+      openCamera();
+    }
+  }, [openedVideo]);
+
   return (
     <div className={isChatOpen ? styles.chatLogContainer : styles.chatNotOpen}>
       <Toaster />
@@ -498,8 +587,6 @@ export default function ChatLogs({
                       onClick={() => {
                         setOpenedImg(chat.imageURL);
                         setImageOpen(true);
-                        console.log(openedImg);
-                        
                       }}
                     />
 
@@ -565,7 +652,38 @@ export default function ChatLogs({
             onChange={(e) => setMessage(e.target.value)}
           />
           <div className={styles.iconsWrapper}>
-            <IoCameraOutline className={styles.icon} />
+            <IoCameraOutline
+              className={styles.icon}
+              onClick={() => setOpenedVideo(true)}
+            />
+            {cameraOpen && (
+              <Modal open={openedVideo} onClose={() => setOpenedVideo(false)}>
+                <Box className={styles.modalCameraWrapper}>
+                  <Typography sx={{ mt: 2 }}></Typography>
+                  <div className={styles.cameraContainer}>
+                    <video
+                      ref={videoRef}
+                      className={styles.videoPreview}
+                    ></video>
+                    <canvas ref={canvasRef} style={{ display: "none" }} />
+                    <div className={styles.cameraButtonsWrapper}>
+                      <button
+                        onClick={() => handleCapture()}
+                        className={styles.cameraButton}
+                      >
+                        Capture
+                      </button>
+                      <button
+                        onClick={() => handleCloseModal()}
+                        className={styles.cameraButton}
+                      >
+                        Close
+                      </button>
+                    </div>
+                  </div>
+                </Box>
+              </Modal>
+            )}
             <FaMicrophone className={styles.icon} onClick={startRecording} />
             <IoSend className={styles.icon} onClick={sendMessage} />
           </div>
