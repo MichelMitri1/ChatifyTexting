@@ -97,6 +97,7 @@
 }
 
 .messageWrapperSent {
+  display: flex;
   align-self: flex-end;
 }
 
@@ -332,6 +333,19 @@
   margin: 10px 0;
   font-weight: bold;
   color: #666;
+}
+
+.imageContainerSent,
+.imageContainerReceived {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.chatImage {
+  max-width: 100%;
+  border-radius: 8px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
 }
 
 @media (max-width: 750px) {

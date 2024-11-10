@@ -40,6 +40,7 @@ export default function ChatLogs({
 }) {
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
+  const fileInputRef = useRef(null);
   const [message, setMessage] = useState("");
   const [counter, setCounter] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -52,6 +53,42 @@ export default function ChatLogs({
   const counterRef = useRef(0);
 
   const handleClose = () => setOpen(false);
+
+  const handleImageUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    try {
+      const storageRef = ref(storage, `images/${file.name}`);
+      await uploadBytes(storageRef, file);
+
+      const downloadURL = await getDownloadURL(storageRef);
+
+      const senderId = currentUser.uid;
+      const sentToId = clickedUser.idOfUserSent;
+      const newMessage = {
+        imageURL: downloadURL,
+        senderId,
+        sentAt: serverTimestamp(),
+        type: "image",
+      };
+
+      let chatId = `${senderId}${sentToId}`;
+      let chatCollection = collection(db, "chats", chatId, "messages");
+
+      let collectionSnapshot = await getDocs(chatCollection);
+      if (collectionSnapshot.empty) {
+        chatId = `${sentToId}${senderId}`;
+        chatCollection = collection(db, "chats", chatId, "messages");
+        collectionSnapshot = await getDocs(chatCollection);
+        if (collectionSnapshot.empty) return;
+      }
+
+      await addDoc(chatCollection, newMessage);
+    } catch (error) {
+      console.error("Error uploading file:", error);
+    }
+  };
 
   const formatVoiceTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);
@@ -444,6 +481,20 @@ export default function ChatLogs({
                       </span>
                     </div>
                   </div>
+                ) : chat.type === "image" ? (
+                  <div
+                    className={
+                      chat.senderId === currentUser.uid
+                        ? styles.imageContainerSent
+                        : styles.imageContainerReceived
+                    }
+                  >
+                    <img
+                      src={chat.imageURL}
+                      alt="Sent image"
+                      className={styles.chatImage}
+                    />
+                  </div>
                 ) : (
                   <p
                     className={
@@ -475,7 +526,17 @@ export default function ChatLogs({
 
       {!isRecording ? (
         <div className={styles.messageSendingContainer}>
-          <MdAddPhotoAlternate className={styles.icon} />
+          <input
+            type="file"
+            accept="image/*"
+            style={{ display: "none" }}
+            ref={fileInputRef}
+            onChange={handleImageUpload}
+          />
+          <MdAddPhotoAlternate
+            className={styles.icon}
+            onClick={() => fileInputRef.current.click()}
+          />
           <input
             type="text"
             className={styles.messageInput}
