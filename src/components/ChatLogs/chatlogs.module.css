@@ -395,7 +395,8 @@
 
 @media (max-width: 750px) {
   .chatNotOpen,
-  .addFriendButton {
+  .addFriendButton,
+  .cameraIcon {
     display: none;
   }
 

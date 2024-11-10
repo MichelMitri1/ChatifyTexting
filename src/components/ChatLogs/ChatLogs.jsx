@@ -653,7 +653,7 @@ export default function ChatLogs({
           />
           <div className={styles.iconsWrapper}>
             <IoCameraOutline
-              className={styles.icon}
+              className={`${styles.icon} ${styles.cameraIcon}`}
               onClick={() => setOpenedVideo(true)}
             />
             {cameraOpen && (
