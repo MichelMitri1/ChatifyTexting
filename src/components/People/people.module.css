@@ -61,8 +61,23 @@
   margin-top: 1rem;
   padding: 0 1rem;
   display: flex;
+  height: 89vh;
+  overflow: auto;
   flex-direction: column;
   gap: 0.5rem;
+}
+
+.peopleWrapperF::-webkit-scrollbar {
+  width: 6px;
+}
+
+.peopleWrapperF::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.peopleWrapperF::-webkit-scrollbar-thumb {
+  background: #c4c4c4;
+  border-radius: 3px;
 }
 
 .chatWrapper {

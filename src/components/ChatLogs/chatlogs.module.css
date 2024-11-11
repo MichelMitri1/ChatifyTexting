@@ -53,7 +53,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem;
+  padding: 19px;
   border-bottom: 1px solid #f0f0f0;
   background-color: white;
 }
@@ -177,6 +177,10 @@
   font-size: 1.25rem;
   color: #8b5cf6;
   cursor: pointer;
+}
+
+.backIcon {
+  display: none;
 }
 
 .phoneIcon {
@@ -353,6 +357,7 @@
 .modalImageWrapper,
 .modalCameraWrapper {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   position: absolute;
@@ -369,6 +374,15 @@
   height: 100%;
   background-color: #f8f5ff;
   padding: 12px;
+}
+
+.localVideo,
+.remoteVideo {
+  width: 100%;
+  max-width: 600px;
+  max-height: 400px;
+  height: auto;
+  border-radius: 8px;
 }
 
 .videoPreview {
@@ -400,7 +414,8 @@
     display: none;
   }
 
-  .phoneIcon {
+  .phoneIcon,
+  .backIcon {
     display: block;
   }
 

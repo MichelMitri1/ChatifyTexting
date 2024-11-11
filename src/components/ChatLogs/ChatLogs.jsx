@@ -6,6 +6,7 @@ import {
   query,
   onSnapshot,
   orderBy,
+  doc,
   addDoc,
   getDocs,
   serverTimestamp,
@@ -38,6 +39,9 @@ export default function ChatLogs({
   open,
   setOpen,
 }) {
+  let localStream = null;
+  let remoteStream = null;
+  let peerConnection = null;
   const counterRef = useRef(0);
   const audioRef = useRef(null);
   const videoRef = useRef(null);
@@ -50,13 +54,159 @@ export default function ChatLogs({
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [openedImg, setOpenedImg] = useState({});
-  const [openedVideo, setOpenedVideo] = useState(false);
   const [isPlaying, setIsPlaying] = useState({});
   const [imageOpen, setImageOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState({});
   const [cameraOpen, setCameraOpen] = useState(false);
+  const [openedVideo, setOpenedVideo] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [isCallActive, setIsCallActive] = useState(false);
   const [addFriendInput, setAddFriendInput] = useState("");
+
+  const rtcConfig = {
+    iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+  };
+
+  function createPeerConnection(callId) {
+    peerConnection = new RTCPeerConnection(rtcConfig);
+
+    peerConnection.onicecandidate = (event) => {
+      if (event.candidate) {
+        sendCandidate(event.candidate, callId);
+      }
+    };
+
+    peerConnection.ontrack = (event) => {
+      remoteStream = event.streams[0];
+      document.getElementById("remoteVideo").srcObject = remoteStream;
+    };
+  }
+
+  async function startCall(clickedUser) {
+    const callDocRef = await addDoc(collection(db, "calls"), {
+      offer: { type: "offer", sdp: "" },
+    });
+
+    const callId = callDocRef.id;
+
+    setIsCallActive(true);
+    localStream = await navigator.mediaDevices.getUserMedia({
+      video: true,
+      audio: true,
+    });
+
+    document.getElementById("localVideo").srcObject = localStream;
+
+    createPeerConnection(callId);
+
+    localStream.getTracks().forEach((track) => {
+      peerConnection.addTrack(track, localStream);
+    });
+
+    const offer = await peerConnection.createOffer();
+    await peerConnection.setLocalDescription(offer);
+
+    await sendOffer(offer, clickedUser, callId);
+  }
+
+  async function sendOffer(offer, clickedUser) {
+    const offerData = { type: "offer", sdp: offer.sdp };
+
+    const callDocRef = await addDoc(collection(db, "calls"), {
+      offer: offerData,
+    });
+
+    const callId = callDocRef.id;
+
+    const candidatesCollectionRef = collection(callDocRef, "candidates");
+    const candidateData = {
+      candidate: clickedUser,
+      callId: callId,
+    };
+    await addDoc(candidatesCollectionRef, candidateData);
+
+    const callDocSnapshotRef = doc(db, "calls", callDocRef.id);
+    onSnapshot(callDocSnapshotRef, (snapshot) => {
+      const data = snapshot.data();
+      if (data?.answer && !peerConnection.currentRemoteDescription) {
+        const answerDesc = new RTCSessionDescription(data.answer);
+        peerConnection.setRemoteDescription(answerDesc);
+      }
+    });
+
+    peerConnection.onicecandidate = (event) => {
+      if (event.candidate) {
+        sendCandidate(event.candidate, callId);
+      }
+    };
+  }
+
+  async function respondToCall(offer, callId) {
+    createPeerConnection(callId);
+
+    localStream.getTracks().forEach((track) => {
+      peerConnection.addTrack(track, localStream);
+    });
+
+    const offerDesc = new RTCSessionDescription(offer);
+    await peerConnection.setRemoteDescription(offerDesc);
+
+    const answer = await peerConnection.createAnswer();
+    await peerConnection.setLocalDescription(answer);
+
+    const callDocRef = doc(db, "calls", callId);
+    await updateDoc(callDocRef, {
+      answer: { type: "answer", sdp: answer.sdp },
+    });
+  }
+
+  async function sendCandidate(candidate, callId) {
+    const candidateData = {
+      candidate: candidate.toJSON(),
+      callId: callId,
+    };
+
+    const callDocRef = doc(db, "calls", callId);
+    const candidatesCollectionRef = collection(callDocRef, "candidates");
+
+    await addDoc(candidatesCollectionRef, candidateData);
+  }
+
+  function listenForCandidates(callId) {
+    const callDocRef = doc(db, "calls", callId);
+    const candidatesCollectionRef = collection(callDocRef, "candidates");
+
+    onSnapshot(candidatesCollectionRef, (snapshot) => {
+      snapshot.docChanges().forEach((change) => {
+        if (change.type === "added") {
+          const candidate = new RTCIceCandidate(change.doc.data().candidate);
+          peerConnection.addIceCandidate(candidate);
+        }
+      });
+    });
+  }
+
+  function endCall() {
+    if (peerConnection) {
+      peerConnection.close();
+      peerConnection = null;
+    }
+
+    if (localStream) {
+      localStream.getTracks().forEach((track) => track.stop());
+      localStream = null;
+    }
+
+    if (remoteStream) {
+      remoteStream.getTracks().forEach((track) => track.stop());
+      remoteStream = null;
+    }
+
+    document.getElementById("localVideo").srcObject = null;
+    document.getElementById("remoteVideo").srcObject = null;
+
+    setIsCallActive(false);
+  }
 
   const handleClose = () => setOpen(false);
   const handleImageClose = () => setImageOpen(false);
@@ -459,7 +609,7 @@ export default function ChatLogs({
       <div className={styles.chatLogHeader}>
         <div className={styles.nameWrapper}>
           <IoIosArrowBack
-            className={`${styles.icon} ${styles.phoneIcon}`}
+            className={`${styles.icon} ${styles.backIcon}`}
             onClick={() => setIsChatOpen(false)}
           />
           <h2 className={styles.name}>
@@ -468,13 +618,12 @@ export default function ChatLogs({
         </div>
         <div className={styles.callWrapper}>
           <FaVideo className={styles.icon} />
-          <FaPhone className={styles.icon} />
-          <button className={styles.addFriendButton} onClick={handleOpen}>
-            Add
-          </button>
+          <FaPhone
+            className={`${styles.icon}`}
+            onClick={() => startCall(clickedUser)}
+          />
         </div>
       </div>
-
       <div className={styles.messagesContainer}>
         {chats.map((chat, index) => {
           const chatDate = formatDate(parseToUnixTimestamp(chat.sentAt));
@@ -684,6 +833,31 @@ export default function ChatLogs({
                 </Box>
               </Modal>
             )}
+            <Modal open={isCallActive} onClose={() => setIsCallActive(false)}>
+              <Box className={styles.modalCameraWrapper}>
+                <video
+                  id="localVideo"
+                  autoPlay
+                  muted
+                  playsInline
+                  className={styles.localVideo}
+                ></video>
+                <video
+                  id="remoteVideo"
+                  autoPlay
+                  playsInline
+                  className={styles.remoteVideo}
+                ></video>
+                <div className={styles.cameraButtonsWrapper}>
+                  <button
+                    className={styles.cameraButton}
+                    onClick={() => endCall()}
+                  >
+                    Close
+                  </button>
+                </div>
+              </Box>
+            </Modal>
             <FaMicrophone className={styles.icon} onClick={startRecording} />
             <IoSend className={styles.icon} onClick={sendMessage} />
           </div>
