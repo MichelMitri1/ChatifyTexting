@@ -98,7 +98,7 @@ export default function People({
       const querySnapshot = await getDocs(requestQuery);
 
       if (querySnapshot.empty) {
-        throw new Error("Friend request not found");
+        toast.error("Friend request not found");
       }
 
       const updatePromises = querySnapshot.docs.map((doc) =>
@@ -137,7 +137,6 @@ export default function People({
       toast.success("Friend Request Accepted!");
     } catch (error) {
       toast.error("Error accepting friend request:", error.message);
-      throw error;
     }
   };
 

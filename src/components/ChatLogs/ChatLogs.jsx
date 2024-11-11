@@ -83,11 +83,12 @@ export default function ChatLogs({
   }
 
   async function startCall(clickedUser) {
+    // 1. Create the call document first (this generates the callId)
     const callDocRef = await addDoc(collection(db, "calls"), {
-      offer: { type: "offer", sdp: "" },
+      offer: { type: "offer", sdp: "" }, // Empty offer initially, will be updated later
     });
 
-    const callId = callDocRef.id;
+    const callId = callDocRef.id; // Get the generated callId
 
     setIsCallActive(true);
     localStream = await navigator.mediaDevices.getUserMedia({
@@ -97,6 +98,7 @@ export default function ChatLogs({
 
     document.getElementById("localVideo").srcObject = localStream;
 
+    // 2. Now that we have the callId, pass it into createPeerConnection
     createPeerConnection(callId);
 
     localStream.getTracks().forEach((track) => {
@@ -106,6 +108,7 @@ export default function ChatLogs({
     const offer = await peerConnection.createOffer();
     await peerConnection.setLocalDescription(offer);
 
+    // 3. Pass the callId and clickedUser to sendOffer
     await sendOffer(offer, clickedUser, callId);
   }
 
@@ -172,55 +175,18 @@ export default function ChatLogs({
     await addDoc(candidatesCollectionRef, candidateData);
   }
 
-  function listenForIncomingCall() {
-    const callsRef = collection(db, "calls");
+  function listenForCandidates(callId) {
+    const callDocRef = doc(db, "calls", callId);
+    const candidatesCollectionRef = collection(callDocRef, "candidates");
 
-    onSnapshot(callsRef, (snapshot) => {
+    onSnapshot(candidatesCollectionRef, (snapshot) => {
       snapshot.docChanges().forEach((change) => {
         if (change.type === "added") {
-          const callData = change.doc.data();
-          const callId = change.doc.id;
-
-          if (callData.offer && callData.offer.sdp) {
-            displayIncomingCallNotification(callData.offer, callId);
-          }
+          const candidate = new RTCIceCandidate(change.doc.data().candidate);
+          peerConnection.addIceCandidate(candidate);
         }
       });
     });
-  }
-
-  function displayIncomingCallNotification(offer, callId) {
-    document.getElementById("acceptCallButton").onclick = async () => {
-      await respondToCall(offer, callId);
-    };
-
-    document.getElementById("declineCallButton").onclick = () => {
-      declineCall(callId);
-    };
-  }
-
-  async function respondToCall(offer, callId) {
-    createPeerConnection(callId);
-
-    localStream.getTracks().forEach((track) => {
-      peerConnection.addTrack(track, localStream);
-    });
-
-    const offerDesc = new RTCSessionDescription(offer);
-    await peerConnection.setRemoteDescription(offerDesc);
-
-    const answer = await peerConnection.createAnswer();
-    await peerConnection.setLocalDescription(answer);
-
-    const callDocRef = doc(db, "calls", callId);
-    await updateDoc(callDocRef, {
-      answer: { type: "answer", sdp: answer.sdp },
-    });
-  }
-
-  async function declineCall(callId) {
-    const callDocRef = doc(db, "calls", callId);
-    await deleteDoc(callDocRef);
   }
 
   function endCall() {
@@ -853,24 +819,17 @@ export default function ChatLogs({
                     ></video>
                     <canvas ref={canvasRef} style={{ display: "none" }} />
                     <div className={styles.cameraButtonsWrapper}>
-                      {/* Decline and Accept buttons */}
                       <button
-                        id="acceptCallButton"
+                        onClick={() => handleCapture()}
                         className={styles.cameraButton}
-                        onClick={async () => {
-                          await respondToCall(offer, callId);
-                        }}
                       >
-                        Accept Call
+                        Capture
                       </button>
                       <button
-                        id="declineCallButton"
+                        onClick={() => handleCloseModal()}
                         className={styles.cameraButton}
-                        onClick={() => {
-                          declineCall(callId);
-                        }}
                       >
-                        Decline Call
+                        Close
                       </button>
                     </div>
                   </div>
