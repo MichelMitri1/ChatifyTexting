@@ -172,18 +172,55 @@ export default function ChatLogs({
     await addDoc(candidatesCollectionRef, candidateData);
   }
 
-  function listenForCandidates(callId) {
-    const callDocRef = doc(db, "calls", callId);
-    const candidatesCollectionRef = collection(callDocRef, "candidates");
+  function listenForIncomingCall() {
+    const callsRef = collection(db, "calls");
 
-    onSnapshot(candidatesCollectionRef, (snapshot) => {
+    onSnapshot(callsRef, (snapshot) => {
       snapshot.docChanges().forEach((change) => {
         if (change.type === "added") {
-          const candidate = new RTCIceCandidate(change.doc.data().candidate);
-          peerConnection.addIceCandidate(candidate);
+          const callData = change.doc.data();
+          const callId = change.doc.id;
+
+          if (callData.offer && callData.offer.sdp) {
+            displayIncomingCallNotification(callData.offer, callId);
+          }
         }
       });
     });
+  }
+
+  function displayIncomingCallNotification(offer, callId) {
+    document.getElementById("acceptCallButton").onclick = async () => {
+      await respondToCall(offer, callId);
+    };
+
+    document.getElementById("declineCallButton").onclick = () => {
+      declineCall(callId);
+    };
+  }
+
+  async function respondToCall(offer, callId) {
+    createPeerConnection(callId);
+
+    localStream.getTracks().forEach((track) => {
+      peerConnection.addTrack(track, localStream);
+    });
+
+    const offerDesc = new RTCSessionDescription(offer);
+    await peerConnection.setRemoteDescription(offerDesc);
+
+    const answer = await peerConnection.createAnswer();
+    await peerConnection.setLocalDescription(answer);
+
+    const callDocRef = doc(db, "calls", callId);
+    await updateDoc(callDocRef, {
+      answer: { type: "answer", sdp: answer.sdp },
+    });
+  }
+
+  async function declineCall(callId) {
+    const callDocRef = doc(db, "calls", callId);
+    await deleteDoc(callDocRef);
   }
 
   function endCall() {
@@ -816,17 +853,24 @@ export default function ChatLogs({
                     ></video>
                     <canvas ref={canvasRef} style={{ display: "none" }} />
                     <div className={styles.cameraButtonsWrapper}>
+                      {/* Decline and Accept buttons */}
                       <button
-                        onClick={() => handleCapture()}
+                        id="acceptCallButton"
                         className={styles.cameraButton}
+                        onClick={async () => {
+                          await respondToCall(offer, callId);
+                        }}
                       >
-                        Capture
+                        Accept Call
                       </button>
                       <button
-                        onClick={() => handleCloseModal()}
+                        id="declineCallButton"
                         className={styles.cameraButton}
+                        onClick={() => {
+                          declineCall(callId);
+                        }}
                       >
-                        Close
+                        Decline Call
                       </button>
                     </div>
                   </div>
