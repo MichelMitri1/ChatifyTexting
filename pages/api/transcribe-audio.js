@@ -16,7 +16,7 @@ export default async function handler(req, res) {
 
       const headers = {
         ...form.getHeaders(),
-        Authorization: `Bearer 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`,
+        Authorization: `Bearer ${process.env.OPEN_API_KEY}`,
       };
 
       const openaiResponse = await fetch(
