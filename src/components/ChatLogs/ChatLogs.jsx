@@ -7,6 +7,7 @@ import {
   onSnapshot,
   orderBy,
   doc,
+  updateDoc,
   addDoc,
   getDocs,
   serverTimestamp,
@@ -237,6 +238,7 @@ export default function ChatLogs({
       sentAt: serverTimestamp(),
       type: "audio",
       duration: counterRef.current,
+      transcript: "No transcript",
     };
 
     try {
@@ -252,23 +254,7 @@ export default function ChatLogs({
       }
 
       const messageDocRef = await addDoc(chatCollection, newMessage);
-
-      // const response = await fetch("/api/transcribe-audio", {
-      //   method: "POST",
-      //   body: JSON.stringify({ audioURL }),
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //   },
-      // });
-
-      // if (response.ok) {
-      //   const { transcript } = await response.json();
-      //   await updateDoc(messageDocRef, {
-      //     transcript,
-      //   });
-      // } else {
-      //   toast.error("Failed to transcribe the audio message");
-      // }
+      await showTranscript(audioURL, messageDocRef);
 
       counterRef.current = 0;
     } catch (error) {
@@ -409,9 +395,7 @@ export default function ChatLogs({
       .catch((error) => toast.error("Error playing audio:", error));
   };
 
-  const showTranscript = async (audioURL) => {
-    setIsTranscriptModal(true);
-
+  const showTranscript = async (audioURL, messageDocRef) => {
     const response = await fetch("/api/transcribe-audio", {
       method: "POST",
       headers: {
@@ -422,7 +406,12 @@ export default function ChatLogs({
 
     if (response.ok) {
       const data = await response.json();
-      setTranscript(data.transcript);
+      const transcript = data.transcript;
+      try {
+        await updateDoc(messageDocRef, { transcript });
+      } catch (error) {
+        toast.error("Failed to update transcript");
+      }
     }
   };
 
@@ -521,10 +510,7 @@ export default function ChatLogs({
           </div>
           <div className={styles.callWrapper}>
             <FaVideo className={styles.icon} />
-            <FaPhone
-              className={`${styles.icon}`}
-              // onClick={() => startCall(clickedUser)}
-            />
+            <FaPhone className={`${styles.icon}`} />
           </div>
         </div>
       ) : null}
@@ -664,9 +650,7 @@ export default function ChatLogs({
                     >
                       <Box className={styles.modalWrapper}>
                         <Typography variant="h4">Transcript:</Typography>
-                        <p className={styles.transcriptPara}>
-                          {transcript ? transcript : "Loading Transcript..."}
-                        </p>
+                        <p className={styles.transcript}>{transcript}</p>
                       </Box>
                     </Modal>
                   </div>
@@ -703,10 +687,13 @@ export default function ChatLogs({
                           )}
                         </p>
                         <p
-                          className={styles.transcriptButton}
-                          onClick={() => showTranscript(chat.audioURL)}
+                          className={styles.transcriptPara}
+                          onClick={() => {
+                            setTranscript(chat.transcript);
+                            setIsTranscriptModal(true);
+                          }}
                         >
-                          Show Transcript
+                          {chat.transcript ? chat.transcript : ""}
                         </p>
                       </div>
                     ) : (

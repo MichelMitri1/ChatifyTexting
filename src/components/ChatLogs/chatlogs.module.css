@@ -150,15 +150,18 @@
   flex-direction: row-reverse;
 }
 
-.transcriptButton {
+.transcriptPara {
   color: #b28cff;
   font-weight: bold;
+  max-width: 200px;
   font-size: 0.75rem;
-  cursor: pointer;
-}
 
-.transcriptPara {
-  text-align: center;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
 }
 
 .dateOfMessageWrapperVoiceSent,
