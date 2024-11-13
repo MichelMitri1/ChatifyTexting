@@ -135,13 +135,19 @@
 .dateOfMessageWrapperReceived {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 0.25rem;
   margin-top: 0.25rem;
 }
 
 .dateOfMessageWrapperSent {
+  justify-content: end;
+}
+
+.transcriptWrapper {
+  display: flex;
+  align-items: center;
   justify-content: space-between;
+  flex-direction: row-reverse;
 }
 
 .transcriptButton {

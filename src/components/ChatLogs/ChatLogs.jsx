@@ -681,38 +681,66 @@ export default function ChatLogs({
                     {chat.message}
                   </p>
                 )}
-                <div
-                  className={
-                    chat.senderId === currentUser.uid
-                      ? styles.dateOfMessageWrapperSent
-                      : styles.dateOfMessageWrapperReceived
-                  }
-                >
-                  {chat.type === "audio" ? (
-                    <p
-                      className={styles.transcriptButton}
-                      onClick={() => showTranscript(chat.audioURL)}
-                    >
-                      Show Transcript
-                    </p>
-                  ) : null}
-                  {chat.sentAt ? (
-                    <p className={styles.dateOfMessage}>
-                      {formatTime(parseToUnixTimestamp(chat.sentAt))}{" "}
-                      {chat.senderId === currentUser.uid ? (
-                        <span>
-                          <RiCheckDoubleFill className={styles.icon} />
-                        </span>
-                      ) : (
-                        ""
-                      )}
-                    </p>
-                  ) : (
-                    <p className={styles.dateOfMessage}>
-                      <RiCheckFill className={styles.icon} />
-                    </p>
-                  )}
-                </div>
+
+                {chat.type === "audio" ? (
+                  <div
+                    className={
+                      chat.senderId === currentUser.uid
+                        ? styles.dateOfMessageWrapperVoiceSent
+                        : styles.dateOfMessageWrapperVoiceReceived
+                    }
+                  >
+                    {chat.sentAt ? (
+                      <div className={styles.transcriptWrapper}>
+                        <p className={styles.dateOfMessage}>
+                          {formatTime(parseToUnixTimestamp(chat.sentAt))}{" "}
+                          {chat.senderId === currentUser.uid ? (
+                            <span>
+                              <RiCheckDoubleFill className={styles.icon} />
+                            </span>
+                          ) : (
+                            ""
+                          )}
+                        </p>
+                        <p
+                          className={styles.transcriptButton}
+                          onClick={() => showTranscript(chat.audioURL)}
+                        >
+                          Show Transcript
+                        </p>
+                      </div>
+                    ) : (
+                      <p className={styles.dateOfMessage}>
+                        <RiCheckFill className={styles.icon} />
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <div
+                    className={
+                      chat.senderId === currentUser.uid
+                        ? styles.dateOfMessageWrapperSent
+                        : styles.dateOfMessageWrapperReceived
+                    }
+                  >
+                    {chat.sentAt ? (
+                      <p className={styles.dateOfMessage}>
+                        {formatTime(parseToUnixTimestamp(chat.sentAt))}{" "}
+                        {chat.senderId === currentUser.uid ? (
+                          <span>
+                            <RiCheckDoubleFill className={styles.icon} />
+                          </span>
+                        ) : (
+                          ""
+                        )}
+                      </p>
+                    ) : (
+                      <p className={styles.dateOfMessage}>
+                        <RiCheckFill className={styles.icon} />
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             </>
           );
