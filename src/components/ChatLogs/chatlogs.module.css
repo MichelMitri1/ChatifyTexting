@@ -161,6 +161,11 @@
   text-align: center;
 }
 
+.dateOfMessageWrapperVoiceSent,
+.dateOfMessageWrapperVoiceReceived {
+  padding: 2px 0px;
+}
+
 .dateOfMessage {
   font-size: 0.75rem;
   color: #6b7280;
