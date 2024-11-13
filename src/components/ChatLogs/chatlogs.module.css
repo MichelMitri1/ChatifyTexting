@@ -443,4 +443,9 @@
   .modalImageWrapper {
     width: 80%;
   }
+
+  .messageWrapperSent,
+  .messageWrapperReceived {
+    max-width: 60%;
+  }
 }
