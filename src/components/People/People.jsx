@@ -35,6 +35,7 @@ export default function People({
   const router = useRouter();
 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const searchForFriend = (e) => {
     const name = e.target.value.toLowerCase();
@@ -185,6 +186,7 @@ export default function People({
     const unsubscribeRequests = onSnapshot(requestCollection, (snapshot) => {
       const updatedRequests = snapshot.docs.map((doc) => doc.data());
       setFriendRequests(updatedRequests);
+      setLoading(false);
     });
 
     return () => unsubscribeRequests();
@@ -218,14 +220,29 @@ export default function People({
         </div>
       </div>
       <div className={styles.peopleWrapper}>
-        {friendRequests.length > 0 ? (
+        {loading ? (
+          <div className={styles.skeletalWrapper}>
+            <div className={styles.chatWrapper}>
+              <line className={`${"shine"} ${styles.skeletalLoading}`}></line>
+            </div>
+            <div className={styles.chatWrapper}>
+              <line className={`${"shine"} ${styles.skeletalLoading}`}></line>
+            </div>
+            <div className={styles.chatWrapper}>
+              <line className={`${"shine"} ${styles.skeletalLoading}`}></line>
+            </div>
+            <div className={styles.chatWrapper}>
+              <line className={`${"shine"} ${styles.skeletalLoading}`}></line>
+            </div>
+          </div>
+        ) : friendRequests.length > 0 ? (
           friendRequests
             .filter(
               (request) =>
                 !request.friends && request.idOfCurrentUser === currentUser.uid
             )
-            .map((request) => (
-              <div className={styles.friendRequestWrapper}>
+            .map((request, index) => (
+              <div className={styles.friendRequestWrapper} key={index}>
                 <h3 key={request.id} className={styles.nameOfUserSent}>
                   {request.nameOfUserSent}
                 </h3>
@@ -252,21 +269,18 @@ export default function People({
             </h2>
           </div>
         )}
-        {friendRequests.length > 0
-          ? friendRequests
-              .filter(
-                (user) => user.userId !== currentUser?.uid && user.friends
-              )
-              .map((user) => (
-                <div
-                  className={styles.chatWrapper}
-                  key={user.id}
-                  onClick={() => openChat(user)}
-                >
-                  <h2 className={styles.username}>{user.nameOfUserSent}</h2>
-                </div>
-              ))
-          : null}
+        {friendRequests.length > 0 &&
+          friendRequests
+            .filter((user) => user.userId !== currentUser?.uid && user.friends)
+            .map((user) => (
+              <div
+                className={styles.chatWrapper}
+                key={user.id}
+                onClick={() => openChat(user)}
+              >
+                <h2 className={styles.username}>{user.nameOfUserSent}</h2>
+              </div>
+            ))}
       </div>
     </div>
   );

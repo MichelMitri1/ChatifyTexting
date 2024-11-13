@@ -13,6 +13,7 @@ import {
 } from "firebase/firestore";
 import { db, storage } from "../../helpers/firebase";
 import { FaMicrophone, FaVideo } from "react-icons/fa";
+import { RiCheckDoubleFill, RiCheckFill } from "react-icons/ri";
 import { FaPhone } from "react-icons/fa6";
 import { MdAddPhotoAlternate } from "react-icons/md";
 import { IoCameraOutline, IoSend } from "react-icons/io5";
@@ -35,13 +36,9 @@ export default function ChatLogs({
   clickedUser,
   setIsChatOpen,
   isChatOpen,
-  handleOpen,
   open,
   setOpen,
 }) {
-  let localStream = null;
-  let remoteStream = null;
-  let peerConnection = null;
   const counterRef = useRef(0);
   const audioRef = useRef(null);
   const videoRef = useRef(null);
@@ -58,158 +55,11 @@ export default function ChatLogs({
   const [imageOpen, setImageOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState({});
   const [cameraOpen, setCameraOpen] = useState(false);
+  const [transcript, setTranscript] = useState("");
+  const [isTranscriptModal, setIsTranscriptModal] = useState(false);
   const [openedVideo, setOpenedVideo] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
-  const [isCallActive, setIsCallActive] = useState(false);
   const [addFriendInput, setAddFriendInput] = useState("");
-
-  const rtcConfig = {
-    iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
-  };
-
-  function createPeerConnection(callId) {
-    peerConnection = new RTCPeerConnection(rtcConfig);
-
-    peerConnection.onicecandidate = (event) => {
-      if (event.candidate) {
-        sendCandidate(event.candidate, callId);
-      }
-    };
-
-    peerConnection.ontrack = (event) => {
-      remoteStream = event.streams[0];
-      document.getElementById("remoteVideo").srcObject = remoteStream;
-    };
-  }
-
-  async function startCall(clickedUser) {
-    // 1. Create the call document first (this generates the callId)
-    const callDocRef = await addDoc(collection(db, "calls"), {
-      offer: { type: "offer", sdp: "" }, // Empty offer initially, will be updated later
-    });
-
-    const callId = callDocRef.id; // Get the generated callId
-
-    setIsCallActive(true);
-    localStream = await navigator.mediaDevices.getUserMedia({
-      video: true,
-      audio: true,
-    });
-
-    document.getElementById("localVideo").srcObject = localStream;
-
-    // 2. Now that we have the callId, pass it into createPeerConnection
-    createPeerConnection(callId);
-
-    localStream.getTracks().forEach((track) => {
-      peerConnection.addTrack(track, localStream);
-    });
-
-    const offer = await peerConnection.createOffer();
-    await peerConnection.setLocalDescription(offer);
-
-    // 3. Pass the callId and clickedUser to sendOffer
-    await sendOffer(offer, clickedUser, callId);
-  }
-
-  async function sendOffer(offer, clickedUser) {
-    const offerData = { type: "offer", sdp: offer.sdp };
-
-    const callDocRef = await addDoc(collection(db, "calls"), {
-      offer: offerData,
-    });
-
-    const callId = callDocRef.id;
-
-    const candidatesCollectionRef = collection(callDocRef, "candidates");
-    const candidateData = {
-      candidate: clickedUser,
-      callId: callId,
-    };
-    await addDoc(candidatesCollectionRef, candidateData);
-
-    const callDocSnapshotRef = doc(db, "calls", callDocRef.id);
-    onSnapshot(callDocSnapshotRef, (snapshot) => {
-      const data = snapshot.data();
-      if (data?.answer && !peerConnection.currentRemoteDescription) {
-        const answerDesc = new RTCSessionDescription(data.answer);
-        peerConnection.setRemoteDescription(answerDesc);
-      }
-    });
-
-    peerConnection.onicecandidate = (event) => {
-      if (event.candidate) {
-        sendCandidate(event.candidate, callId);
-      }
-    };
-  }
-
-  async function respondToCall(offer, callId) {
-    createPeerConnection(callId);
-
-    localStream.getTracks().forEach((track) => {
-      peerConnection.addTrack(track, localStream);
-    });
-
-    const offerDesc = new RTCSessionDescription(offer);
-    await peerConnection.setRemoteDescription(offerDesc);
-
-    const answer = await peerConnection.createAnswer();
-    await peerConnection.setLocalDescription(answer);
-
-    const callDocRef = doc(db, "calls", callId);
-    await updateDoc(callDocRef, {
-      answer: { type: "answer", sdp: answer.sdp },
-    });
-  }
-
-  async function sendCandidate(candidate, callId) {
-    const candidateData = {
-      candidate: candidate.toJSON(),
-      callId: callId,
-    };
-
-    const callDocRef = doc(db, "calls", callId);
-    const candidatesCollectionRef = collection(callDocRef, "candidates");
-
-    await addDoc(candidatesCollectionRef, candidateData);
-  }
-
-  function listenForCandidates(callId) {
-    const callDocRef = doc(db, "calls", callId);
-    const candidatesCollectionRef = collection(callDocRef, "candidates");
-
-    onSnapshot(candidatesCollectionRef, (snapshot) => {
-      snapshot.docChanges().forEach((change) => {
-        if (change.type === "added") {
-          const candidate = new RTCIceCandidate(change.doc.data().candidate);
-          peerConnection.addIceCandidate(candidate);
-        }
-      });
-    });
-  }
-
-  function endCall() {
-    if (peerConnection) {
-      peerConnection.close();
-      peerConnection = null;
-    }
-
-    if (localStream) {
-      localStream.getTracks().forEach((track) => track.stop());
-      localStream = null;
-    }
-
-    if (remoteStream) {
-      remoteStream.getTracks().forEach((track) => track.stop());
-      remoteStream = null;
-    }
-
-    document.getElementById("localVideo").srcObject = null;
-    document.getElementById("remoteVideo").srcObject = null;
-
-    setIsCallActive(false);
-  }
 
   const handleClose = () => setOpen(false);
   const handleImageClose = () => setImageOpen(false);
@@ -246,7 +96,7 @@ export default function ChatLogs({
 
       await addDoc(chatCollection, newMessage);
     } catch (error) {
-      console.error("Error uploading file:", error);
+      toast.error("Error uploading file:", error);
     }
   };
 
@@ -256,16 +106,13 @@ export default function ChatLogs({
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
       videoRef.current.srcObject = stream;
       videoRef.current.play();
-      console.log("success");
     } catch (error) {
-      console.error("Error accessing camera:", error);
+      toast.error("Error accessing camera:", error);
     }
   };
 
   const handleCapture = async () => {
     if (!canvasRef.current || !videoRef.current) return;
-
-    console.log("test");
 
     const canvas = canvasRef.current;
     const video = videoRef.current;
@@ -315,7 +162,7 @@ export default function ChatLogs({
 
       await addDoc(chatCollection, newMessage);
     } catch (error) {
-      console.error("Error uploading captured image:", error);
+      toast.error("Error uploading captured image:", error);
     }
   };
 
@@ -404,7 +251,25 @@ export default function ChatLogs({
         if (collectionSnapshot.empty) return;
       }
 
-      await addDoc(chatCollection, newMessage);
+      const messageDocRef = await addDoc(chatCollection, newMessage);
+
+      // const response = await fetch("/api/transcribe-audio", {
+      //   method: "POST",
+      //   body: JSON.stringify({ audioURL }),
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      // });
+
+      // if (response.ok) {
+      //   const { transcript } = await response.json();
+      //   await updateDoc(messageDocRef, {
+      //     transcript,
+      //   });
+      // } else {
+      //   toast.error("Failed to transcribe the audio message");
+      // }
+
       counterRef.current = 0;
     } catch (error) {
       toast.error("Failed to send audio message");
@@ -414,6 +279,11 @@ export default function ChatLogs({
   const addFriend = async () => {
     setLoading(true);
     try {
+      if (!addFriendInput) {
+        toast.error("Enter the name of a friend please.");
+        setLoading(false);
+        return;
+      }
       const foundUser = users.find((user) =>
         user.username.includes(addFriendInput)
       );
@@ -536,7 +406,24 @@ export default function ChatLogs({
 
     audioRef.current
       .play()
-      .catch((error) => console.error("Error playing audio:", error));
+      .catch((error) => toast.error("Error playing audio:", error));
+  };
+
+  const showTranscript = async (audioURL) => {
+    setIsTranscriptModal(true);
+
+    const response = await fetch("/api/transcribe-audio", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ audioURL }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      setTranscript(data.transcript);
+    }
   };
 
   useEffect(() => {
@@ -593,8 +480,10 @@ export default function ChatLogs({
       <Toaster />
       <Modal open={open} onClose={handleClose}>
         <Box className={styles.modalWrapper}>
-          <Typography variant="h3">Add a Friend</Typography>
-          <Typography sx={{ mt: 2 }}>
+          <Typography variant="h3" sx={{ textAlign: "center" }}>
+            Add a Friend
+          </Typography>
+          <Typography sx={{ mt: 2, textAlign: "center" }}>
             Search For the Username of the Person You Want to Add
           </Typography>
           <input
@@ -604,29 +493,42 @@ export default function ChatLogs({
             value={addFriendInput}
             onChange={(e) => setAddFriendInput(e.target.value)}
           />
-          <button className={styles.addButton} onClick={addFriend}>
-            Add Friend
-          </button>
+          {!loading ? (
+            <button className={styles.addButton} onClick={addFriend}>
+              Add Friend
+            </button>
+          ) : (
+            <div className="spinnerContainer">
+              <div className="📦"></div>
+              <div className="📦"></div>
+              <div className="📦"></div>
+              <div className="📦"></div>
+              <div className="📦"></div>
+            </div>
+          )}
         </Box>
       </Modal>
-      <div className={styles.chatLogHeader}>
-        <div className={styles.nameWrapper}>
-          <IoIosArrowBack
-            className={`${styles.icon} ${styles.backIcon}`}
-            onClick={() => setIsChatOpen(false)}
-          />
-          <h2 className={styles.name}>
-            {clickedUser.nameOfUserSent || "Name"}
-          </h2>
+      {clickedUser ? (
+        <div className={styles.chatLogHeader}>
+          <div className={styles.nameWrapper}>
+            <IoIosArrowBack
+              className={`${styles.icon} ${styles.backIcon}`}
+              onClick={() => setIsChatOpen(false)}
+            />
+            <h2 className={styles.name}>
+              {clickedUser.nameOfUserSent || "Name"}
+            </h2>
+          </div>
+          <div className={styles.callWrapper}>
+            <FaVideo className={styles.icon} />
+            <FaPhone
+              className={`${styles.icon}`}
+              // onClick={() => startCall(clickedUser)}
+            />
+          </div>
         </div>
-        <div className={styles.callWrapper}>
-          <FaVideo className={styles.icon} />
-          <FaPhone
-            className={`${styles.icon}`}
-            onClick={() => startCall(clickedUser)}
-          />
-        </div>
-      </div>
+      ) : null}
+
       <div className={styles.messagesContainer}>
         {chats.map((chat, index) => {
           const chatDate = formatDate(parseToUnixTimestamp(chat.sentAt));
@@ -634,11 +536,12 @@ export default function ChatLogs({
             index === 0 ||
             chatDate !==
               formatDate(parseToUnixTimestamp(chats[index - 1].sentAt));
+
           return (
             <>
               {showDate && (
                 <div className={styles.dateHeader}>
-                  <p>{chatDate}</p>
+                  <p>{chatDate.includes("January 1, 1970") ? "" : chatDate}</p>
                 </div>
               )}
               <div
@@ -752,6 +655,20 @@ export default function ChatLogs({
                         />
                       </Box>
                     </Modal>
+                    <Modal
+                      open={isTranscriptModal}
+                      onClose={() => {
+                        setIsTranscriptModal(false);
+                        setTranscript("");
+                      }}
+                    >
+                      <Box className={styles.modalWrapper}>
+                        <Typography variant="h4">Transcript:</Typography>
+                        <p className={styles.transcriptPara}>
+                          {transcript ? transcript : "Loading Transcript..."}
+                        </p>
+                      </Box>
+                    </Modal>
                   </div>
                 ) : (
                   <p
@@ -771,9 +688,30 @@ export default function ChatLogs({
                       : styles.dateOfMessageWrapperReceived
                   }
                 >
-                  <p className={styles.dateOfMessage}>
-                    {formatTime(parseToUnixTimestamp(chat.sentAt))}
-                  </p>
+                  {chat.type === "audio" ? (
+                    <p
+                      className={styles.transcriptButton}
+                      onClick={() => showTranscript(chat.audioURL)}
+                    >
+                      Show Transcript
+                    </p>
+                  ) : null}
+                  {chat.sentAt ? (
+                    <p className={styles.dateOfMessage}>
+                      {formatTime(parseToUnixTimestamp(chat.sentAt))}{" "}
+                      {chat.senderId === currentUser.uid ? (
+                        <span>
+                          <RiCheckDoubleFill className={styles.icon} />
+                        </span>
+                      ) : (
+                        ""
+                      )}
+                    </p>
+                  ) : (
+                    <p className={styles.dateOfMessage}>
+                      <RiCheckFill className={styles.icon} />
+                    </p>
+                  )}
                 </div>
               </div>
             </>
@@ -781,7 +719,6 @@ export default function ChatLogs({
         })}
         <div ref={messageEndRef} />
       </div>
-
       {!isRecording ? (
         <div className={styles.messageSendingContainer}>
           <input
@@ -836,31 +773,6 @@ export default function ChatLogs({
                 </Box>
               </Modal>
             )}
-            <Modal open={isCallActive} onClose={() => setIsCallActive(false)}>
-              <Box className={styles.modalCameraWrapper}>
-                <video
-                  id="localVideo"
-                  autoPlay
-                  muted
-                  playsInline
-                  className={styles.localVideo}
-                ></video>
-                <video
-                  id="remoteVideo"
-                  autoPlay
-                  playsInline
-                  className={styles.remoteVideo}
-                ></video>
-                <div className={styles.cameraButtonsWrapper}>
-                  <button
-                    className={styles.cameraButton}
-                    onClick={() => endCall()}
-                  >
-                    Close
-                  </button>
-                </div>
-              </Box>
-            </Modal>
             <FaMicrophone className={styles.icon} onClick={startRecording} />
             <IoSend className={styles.icon} onClick={sendMessage} />
           </div>

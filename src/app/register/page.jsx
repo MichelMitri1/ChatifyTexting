@@ -92,63 +92,65 @@ export default function RegisterPage() {
     >
       <Toaster />
       <div className={styles.registerWrapper}>
-        <IoIosArrowBack
-          className={styles.backIcon}
-          onClick={() => router.push("/")}
-        />
-        <h1 className={styles.appName}>Chatify</h1>
-        <p className={styles.registerHeader}>Register An Account</p>
-        <div className={styles.registerInputsWrapper}>
-          <p className={styles.registerInputHeader}>
-            Name<span className={styles.red}>*</span>
-          </p>
-          <input
-            type="text"
-            placeholder="John Doe"
-            className={styles.registerInput}
-            name="nameOfUser"
-            value={registerInput.nameOfUser}
-            onChange={(e) => handleRegisterInput(e)}
+        <div style={{ width: "100%" }}>
+          <IoIosArrowBack
+            className={styles.backIcon}
+            onClick={() => router.push("/")}
           />
-        </div>
-        <div className={styles.registerInputsWrapper}>
-          <p className={styles.registerInputHeader}>
-            Username<span className={styles.red}>*</span>
-          </p>
-          <input
-            type="text"
-            placeholder="JohnDoe"
-            className={styles.registerInput}
-            name="username"
-            value={registerInput.username}
-            onChange={(e) => handleRegisterInput(e)}
-          />
-        </div>
-        <div className={styles.registerInputsWrapper}>
-          <p className={styles.registerInputHeader}>
-            Email<span className={styles.red}>*</span>
-          </p>
-          <input
-            type="email"
-            placeholder="youremail@-mail.com"
-            className={styles.registerInput}
-            name="email"
-            value={registerInput.email}
-            onChange={(e) => handleRegisterInput(e)}
-          />
-        </div>
-        <div className={styles.registerInputsWrapper}>
-          <p className={styles.registerInputHeader}>
-            Password<span className={styles.red}>*</span>
-          </p>
-          <input
-            type="password"
-            placeholder="●●●●●●●●●●●●"
-            className={styles.registerInput}
-            name="pass"
-            value={registerInput.pass}
-            onChange={(e) => handleRegisterInput(e)}
-          />
+          <h1 className={styles.appName}>Chatify</h1>
+          <p className={styles.registerHeader}>Register An Account</p>
+          <div className={styles.registerInputsWrapper}>
+            <p className={styles.registerInputHeader}>
+              Name<span className={styles.red}>*</span>
+            </p>
+            <input
+              type="text"
+              placeholder="John Doe"
+              className={styles.registerInput}
+              name="nameOfUser"
+              value={registerInput.nameOfUser}
+              onChange={(e) => handleRegisterInput(e)}
+            />
+          </div>
+          <div className={styles.registerInputsWrapper}>
+            <p className={styles.registerInputHeader}>
+              Username<span className={styles.red}>*</span>
+            </p>
+            <input
+              type="text"
+              placeholder="JohnDoe"
+              className={styles.registerInput}
+              name="username"
+              value={registerInput.username}
+              onChange={(e) => handleRegisterInput(e)}
+            />
+          </div>
+          <div className={styles.registerInputsWrapper}>
+            <p className={styles.registerInputHeader}>
+              Email<span className={styles.red}>*</span>
+            </p>
+            <input
+              type="email"
+              placeholder="youremail@-mail.com"
+              className={styles.registerInput}
+              name="email"
+              value={registerInput.email}
+              onChange={(e) => handleRegisterInput(e)}
+            />
+          </div>
+          <div className={styles.registerInputsWrapper}>
+            <p className={styles.registerInputHeader}>
+              Password<span className={styles.red}>*</span>
+            </p>
+            <input
+              type="password"
+              placeholder="●●●●●●●●●●●●"
+              className={styles.registerInput}
+              name="pass"
+              value={registerInput.pass}
+              onChange={(e) => handleRegisterInput(e)}
+            />
+          </div>
         </div>
         {!loading ? (
           <button
@@ -158,10 +160,12 @@ export default function RegisterPage() {
             Register
           </button>
         ) : (
-          <div className="spinner-container">
-            <div className="spinner">
-              <div className="spinner-shape"></div>
-            </div>
+          <div className="spinnerContainer">
+            <div className="📦"></div>
+            <div className="📦"></div>
+            <div className="📦"></div>
+            <div className="📦"></div>
+            <div className="📦"></div>
           </div>
         )}
       </div>

@@ -1,4 +1,6 @@
 .settingsContainer {
+  display: flex;
+  flex-direction: column;
   background-color: #f8f5ff;
   color: #333;
   height: 100vh;
@@ -60,4 +62,15 @@
 .userInfo {
   font-size: 16px;
   color: #555;
+}
+
+.spinner {
+  align-self: center;
+  margin: 400px auto;
+  position: fixed;
+}
+
+.skeletalLoading {
+  height: 20px;
+  width: 200px;
 }

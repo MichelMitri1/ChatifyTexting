@@ -11,7 +11,6 @@ import { auth } from "../../helpers/firebase";
 export default function Settings() {
   const router = useRouter();
   const [foundCurrentUser, setFoundCurrentUser] = useState(null);
-  const [loading, setLoading] = useState(true);
 
   const getFoundUser = async (uid) => {
     const users = collection(db, "users");
@@ -22,15 +21,12 @@ export default function Settings() {
     }));
     const foundUser = result.find((user) => user.userId === uid);
     setFoundCurrentUser(foundUser);
-    setLoading(false);
   };
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user) {
         getFoundUser(user.uid);
-      } else {
-        setLoading(false);
       }
     });
 
@@ -60,16 +56,57 @@ export default function Settings() {
       <div className={styles.settingsWrapper}>
         <div className={styles.userInfoContainer}>
           <div className={styles.userInfoWrapper}>
-            <h2 className={styles.userInfoHeader}>Username</h2>
-            <p className={styles.userInfo}>{foundCurrentUser?.username}</p>
+            <h2 className={styles.userInfoHeader}>
+              {" "}
+              {!foundCurrentUser ? (
+                <line className={`${"shine"} ${styles.skeletalLoading}`}></line>
+              ) : (
+                "Username"
+              )}
+            </h2>
+            <p className={styles.userInfo}>
+              {!foundCurrentUser ? (
+                <line className="shine"></line>
+              ) : (
+                foundCurrentUser?.username
+              )}
+            </p>
           </div>
           <div className={styles.userInfoWrapper}>
-            <h2 className={styles.userInfoHeader}>Email</h2>
-            <p className={styles.userInfo}>{foundCurrentUser?.email}</p>
+            <h2 className={styles.userInfoHeader}>
+              {" "}
+              {!foundCurrentUser ? (
+                <line className={`${"shine"} ${styles.skeletalLoading}`}></line>
+              ) : (
+                "Email"
+              )}
+            </h2>
+            <p className={styles.userInfo}>
+              {" "}
+              {!foundCurrentUser ? (
+                <line className="shine"></line>
+              ) : (
+                foundCurrentUser?.email
+              )}
+            </p>
           </div>
           <div className={styles.userInfoWrapper}>
-            <h2 className={styles.userInfoHeader}>Name</h2>
-            <p className={styles.userInfo}>{foundCurrentUser?.name}</p>
+            <h2 className={styles.userInfoHeader}>
+              {" "}
+              {!foundCurrentUser ? (
+                <line className={`${"shine"} ${styles.skeletalLoading}`}></line>
+              ) : (
+                "Name"
+              )}
+            </h2>
+            <div className={styles.userInfo}>
+              {" "}
+              {!foundCurrentUser ? (
+                <line className="shine"></line>
+              ) : (
+                foundCurrentUser?.name
+              )}
+            </div>
           </div>
         </div>
       </div>

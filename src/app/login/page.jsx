@@ -95,10 +95,12 @@ export default function LoginPage() {
             Login
           </button>
         ) : (
-          <div className="spinner-container">
-            <div className="spinner">
-              <div className="spinner-shape"></div>
-            </div>
+          <div className="spinnerContainer">
+            <div className="📦"></div>
+            <div className="📦"></div>
+            <div className="📦"></div>
+            <div className="📦"></div>
+            <div className="📦"></div>
           </div>
         )}
 
