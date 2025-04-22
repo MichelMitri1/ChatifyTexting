@@ -91,19 +91,22 @@ export default function MainPage() {
         isChatOpen={isChatOpen}
         handleOpen={handleOpen}
       />
-      <ChatLogs
-        currentUser={user}
-        users={users}
-        setFriendRequests={setFriendRequests}
-        chats={chats}
-        setChats={setChats}
-        clickedUser={clickedUser}
-        setIsChatOpen={setIsChatOpen}
-        isChatOpen={isChatOpen}
-        handleOpen={handleOpen}
-        setOpen={setOpen}
-        open={open}
-      />
+      {Object.keys(clickedUser).length !== 0 ? (
+        <ChatLogs
+          open={open}
+          users={users}
+          chats={chats}
+          setOpen={setOpen}
+          setChats={setChats}
+          isChatOpen={isChatOpen}
+          setIsChatOpen={setIsChatOpen}
+          currentUser={user}
+          clickedUser={clickedUser}
+          setFriendRequests={setFriendRequests}
+        />
+      ) : (
+        <ChatLoadingPage />
+      )}
     </div>
   );
 }

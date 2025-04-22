@@ -2,7 +2,6 @@ import FormData from "form-data";
 import fetch from "node-fetch";
 
 export default async function handler(req, res) {
-  console.log("test backends");
   if (req.method === "POST") {
     const { audioURL } = req.body;
 

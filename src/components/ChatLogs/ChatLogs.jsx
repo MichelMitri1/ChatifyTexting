@@ -29,9 +29,7 @@ import { IoIosArrowBack } from "react-icons/io";
 import { FaPlay } from "react-icons/fa";
 
 export default function ChatLogs({
-  users,
   currentUser,
-  setFriendRequests,
   chats,
   setChats,
   clickedUser,
@@ -50,7 +48,6 @@ export default function ChatLogs({
   const mediaRecorderRef = useRef(null);
   const [counter, setCounter] = useState(0);
   const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(false);
   const [openedImg, setOpenedImg] = useState({});
   const [isPlaying, setIsPlaying] = useState({});
   const [imageOpen, setImageOpen] = useState(false);
@@ -60,10 +57,10 @@ export default function ChatLogs({
   const [isTranscriptModal, setIsTranscriptModal] = useState(false);
   const [openedVideo, setOpenedVideo] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
-  const [addFriendInput, setAddFriendInput] = useState("");
 
-  const handleClose = () => setOpen(false);
   const handleImageClose = () => setImageOpen(false);
+
+  console.log(open);
 
   const handleImageUpload = async (event) => {
     const file = event.target.files[0];
@@ -262,69 +259,10 @@ export default function ChatLogs({
     }
   };
 
-  const addFriend = async () => {
-    setLoading(true);
-    try {
-      if (!addFriendInput) {
-        toast.error("Enter the name of a friend please.");
-        setLoading(false);
-        return;
-      }
-      const foundUser = users.find((user) =>
-        user.username.includes(addFriendInput)
-      );
-
-      if (!foundUser) {
-        toast.error("User not found");
-        return;
-      } else if (foundUser.userId === currentUser.uid) {
-        toast.error("adding yourself? that's a new low");
-        return;
-      }
-
-      const requestCollection = collection(
-        db,
-        "allRequests",
-        foundUser.userId,
-        "friendRequests"
-      );
-
-      await addDoc(requestCollection, {
-        friends: false,
-        idOfUserSent: currentUser.uid,
-        idOfCurrentUser: foundUser.userId,
-        nameOfUserReceived: foundUser.name,
-        nameOfUserSent: currentUser.displayName,
-      });
-
-      const userRequestCollection = collection(
-        db,
-        "allRequests",
-        currentUser.uid,
-        "friendRequests"
-      );
-
-      const unsubscribe = onSnapshot(userRequestCollection, (snapshot) => {
-        const updatedRequests = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setFriendRequests(updatedRequests);
-      });
-
-      setAddFriendInput("");
-      setLoading(false);
-      setOpen(false);
-      toast.success("Friend Request Sent!");
-      return () => unsubscribe();
-    } catch (error) {
-      toast.error("Error adding friend:", error);
-      setLoading(false);
-      throw error;
-    }
-  };
-
   const sendMessage = async () => {
+    if (!message || !message.trim()) {
+      return;
+    }
     const senderId = currentUser.uid;
     const sentToId = clickedUser.idOfUserSent;
     const newMessage = {
@@ -396,22 +334,40 @@ export default function ChatLogs({
   };
 
   const showTranscript = async (audioURL, messageDocRef) => {
-    const response = await fetch("/api/transcribe-audio", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ audioURL }),
-    });
+    try {
+      const response = await fetch(audioURL);
+      const audioBuffer = await response.buffer();
 
-    if (response.ok) {
-      const data = await response.json();
-      const transcript = data.transcript;
-      try {
-        await updateDoc(messageDocRef, { transcript });
-      } catch (error) {
-        toast.error("Failed to update transcript");
+      const form = new FormData();
+      form.append("file", audioBuffer, { filename: "audio.webm" });
+      form.append("model", "whisper-1");
+
+      const headers = {
+        ...form.getHeaders(),
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      };
+
+      const openaiResponse = await fetch(
+        "https://api.openai.com/v1/audio/translations",
+        {
+          method: "POST",
+          headers: headers,
+          body: form,
+        }
+      );
+
+      const result = await openaiResponse.json();
+
+      if (openaiResponse.ok) {
+        console.log(result.text);
+        res.status(200).json({ transcript: result.text });
+      } else {
+        console.error(result);
+        res.status(500).json({ error: "Error transcribing the audio file" });
       }
+    } catch (error) {
+      console.error("Error during transcription:", error);
+      res.status(500).json({ error: "Error transcribing the audio file" });
     }
   };
 
@@ -467,36 +423,7 @@ export default function ChatLogs({
   return (
     <div className={isChatOpen ? styles.chatLogContainer : styles.chatNotOpen}>
       <Toaster />
-      <Modal open={open} onClose={handleClose}>
-        <Box className={styles.modalWrapper}>
-          <Typography variant="h3" sx={{ textAlign: "center" }}>
-            Add a Friend
-          </Typography>
-          <Typography sx={{ mt: 2, textAlign: "center" }}>
-            Search For the Username of the Person You Want to Add
-          </Typography>
-          <input
-            type="text"
-            className={styles.addFriendInput}
-            placeholder="Type Username Here..."
-            value={addFriendInput}
-            onChange={(e) => setAddFriendInput(e.target.value)}
-          />
-          {!loading ? (
-            <button className={styles.addButton} onClick={addFriend}>
-              Add Friend
-            </button>
-          ) : (
-            <div className="spinnerContainer">
-              <div className="📦"></div>
-              <div className="📦"></div>
-              <div className="📦"></div>
-              <div className="📦"></div>
-              <div className="📦"></div>
-            </div>
-          )}
-        </Box>
-      </Modal>
+
       {clickedUser ? (
         <div className={styles.chatLogHeader}>
           <div className={styles.nameWrapper}>

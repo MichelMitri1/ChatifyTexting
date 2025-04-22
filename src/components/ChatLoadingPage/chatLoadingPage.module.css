@@ -1,0 +1,165 @@
+.chatLoadingContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  border-left: 1px solid #e6e6e6;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+.contentWrapper {
+  text-align: center;
+  padding: 2rem;
+  margin-top: -180px;
+  position: relative;
+}
+
+.chatLoadingHeader {
+  color: #8b5cf6;
+  font-size: 1.8rem;
+  margin-bottom: 3rem;
+  position: relative;
+  z-index: 2;
+}
+
+.chatLoadingHeader::after {
+  content: "";
+  position: absolute;
+  bottom: -10px;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #8b5cf6, transparent);
+}
+
+.illustrationContainer {
+  position: relative;
+  height: 300px;
+  width: 450px;
+  margin: 0 auto;
+}
+
+.chatBubbleLeft,
+.chatBubbleRight {
+  padding: 12px 20px;
+  border-radius: 20px;
+  position: absolute;
+  animation: float 3s ease-in-out infinite;
+  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.chatBubbleLeft {
+  background-color: #8b5cf6;
+  color: white;
+  left: 0;
+}
+
+.chatBubbleRight {
+  background-color: #f3f4f6;
+  color: #8b5cf6;
+  right: 0;
+}
+
+.chatBubbleLeft:nth-child(1) {
+  top: 0;
+  animation-delay: 0s;
+}
+.chatBubbleRight {
+  top: 80px;
+  animation-delay: 0.5s;
+}
+.chatBubbleLeft:nth-child(3) {
+  top: 160px;
+  animation-delay: 1s;
+}
+
+.chatBubbleRight:nth-child(4) {
+  top: 240px;
+  animation-delay: 1s;
+}
+.chatBubbleLeft:nth-child(5) {
+  top: 320px;
+  animation-delay: 1s;
+}
+.chatBubbleRight:nth-child(6) {
+  top: 400px;
+  animation-delay: 1s;
+}
+
+.chatBubbleLeft:hover,
+.chatBubbleRight:hover {
+  transform: scale(1.1) rotate(2deg);
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.chatLoadingContainer::before {
+  content: "";
+  position: absolute;
+  background: radial-gradient(
+    circle,
+    rgba(139, 92, 246, 0.1) 0%,
+    transparent 70%
+  );
+  animation: rotate 20s linear infinite;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 768px) {
+  .chatLoadingHeader {
+    font-size: 1.5rem;
+  }
+
+  .illustrationContainer {
+    width: 250px;
+    height: 250px;
+  }
+
+  .chatBubbleLeft,
+  .chatBubbleRight {
+    padding: 10px 16px;
+    font-size: 0.9rem;
+  }
+}
+
+.illustrationContainer::after {
+  content: "";
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 150px;
+  height: 4px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(139, 92, 246, 0.2),
+    transparent
+  );
+  border-radius: 50%;
+  filter: blur(4px);
+}
+
+@media (max-width: 750px) {
+  .chatLoadingContainerDisappear {
+    display: none;
+  }
+}
